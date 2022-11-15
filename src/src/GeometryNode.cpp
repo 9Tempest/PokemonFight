@@ -14,15 +14,7 @@ GeometryNode::GeometryNode(
 }
 
 GeometryNode::GeometryNode(const GeometryNode& other):SceneNode(other), material(other.material), meshId(other.meshId){
-	for(SceneNode * child : other.children) {
-		if (child->m_nodeType == NodeType::GeometryNode){
-			this->children.push_back(new GeometryNode(*(GeometryNode*)child));
-		}	else if (child->m_nodeType == NodeType::JointNode){
-			this->children.push_back(new JointNode(*(JointNode*)child));
-		}	else {
-			this->children.push_front(new SceneNode(*child));
-		}
-	}
+	
 }
 
 

@@ -12,15 +12,6 @@ JointNode::JointNode(const std::string& name)
 JointNode::JointNode(const JointNode& other):
 	SceneNode(other), m_joint_x(other.m_joint_x), m_joint_y(other.m_joint_y), m_angleX(other.m_angleX), m_angleY(other.m_angleY)
 	{
-		for(SceneNode * child : other.children) {
-			if (child->m_nodeType == NodeType::GeometryNode){
-				this->children.push_back(new GeometryNode(*(GeometryNode*)child));
-			}	else if (child->m_nodeType == NodeType::JointNode){
-				this->children.push_back(new JointNode(*(JointNode*)child));
-			}	else {
-				this->children.push_front(new SceneNode(*child));
-			}
-		}
 	}
 
 //---------------------------------------------------------------------------------------

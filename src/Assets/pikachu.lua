@@ -1,5 +1,5 @@
 -- pikachu.lua
--- modelling for pikachu
+-- model for pikachu
 
 white = gr.material({1,1,1}, {0.1, 0.1, 0.1}, 10)
 yellow = gr.material({0.9568627,0.8627451,0.1490196}, {0.0, 0.0, 0.0}, 5)
