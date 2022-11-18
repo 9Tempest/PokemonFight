@@ -677,7 +677,7 @@ bool A3::mouseMoveEvent (
 				}
 				break;
 			case ModelJoints:
-				if (m_middle_click){
+				if (m_right_click){
 					rotate_all_selected_joints(y_diff, y_diff);
 				}
 				if (m_right_click){
@@ -713,6 +713,7 @@ void A3::processPicking(){
 				if (res->m_name == "head"){
 					m_headNode = nullptr;
 				}
+				cout << " in init joint node " << joint->m_name << " has quat " << glm::quat_cast(joint->jointRotationM)<<  " has rot " << joint->jointRotationM <<  "  w is " <<glm::quat_cast(joint->jointRotationM).w << "  x is " <<glm::quat_cast(joint->jointRotationM).x << "  y is " <<glm::quat_cast(joint->jointRotationM).y << "  z is " <<glm::quat_cast(joint->jointRotationM).z  << std::endl;
 				selected_joints.erase(joint);
 			}
 		}	// if

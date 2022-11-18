@@ -43,9 +43,7 @@ SceneNode::SceneNode(const SceneNode & other)
 	  rotationM(other.rotationM),
 	  m_nodeId(nodeInstanceCount++)
 {	
-	std::cout << "other is " << other << " child has " << other.children.size() << std::endl;
 	for(SceneNode * child : other.children) {
-		std::cout << "child is " << *child << std::endl;
 		if (child->m_nodeType == NodeType::GeometryNode){
 			this->children.push_back(new GeometryNode(*(GeometryNode*)child));
 		}	else if (child->m_nodeType == NodeType::JointNode){

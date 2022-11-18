@@ -1,13 +1,18 @@
 // Termm-Fall 2022
 
 #include "JointNode.hpp"
-
+#include "GeometryNode.hpp"
 //---------------------------------------------------------------------------------------
 JointNode::JointNode(const std::string& name)
 	: SceneNode(name)
 {
 	m_nodeType = NodeType::JointNode;
 }
+
+JointNode::JointNode(const JointNode& other):
+	SceneNode(other), m_joint_x(other.m_joint_x), m_joint_y(other.m_joint_y), m_angleX(other.m_angleX), m_angleY(other.m_angleY)
+	{
+	}
 
 //---------------------------------------------------------------------------------------
 JointNode::~JointNode() {
@@ -47,8 +52,9 @@ void JointNode::rotate_joint(double xAngle, double yAngle){
 		m_angleY = (angle_after < m_joint_y.min) ? m_joint_y.min : angle_after;
 	}
 	y_offset = m_angleY-y_tmp;
-	for (auto child : children){
-		child->rotatelocalxy(x_offset, y_offset, trans);
-	}
+	rotatelocalxy(x_offset, y_offset, trans);
+	// for (auto child : children){
+	// 	child->rotatelocalxy(x_offset, y_offset, trans);
+	// }
 	
 }

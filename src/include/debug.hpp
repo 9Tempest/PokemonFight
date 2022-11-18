@@ -11,7 +11,7 @@
 #else
 
 #include <stdio.h>
-
+#include <iostream>
 #define DLOG(fmt, ...)                                                         \
     do {                                                                       \
         fprintf(stderr, "DEBUG %lu [%s:%d] ", pthread_self(), __FILE__,         \

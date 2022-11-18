@@ -4,6 +4,8 @@
 
 #include "SceneNode.hpp"
 
+#include "SceneNode.hpp"
+
 class JointNode;
 
 const Material HIGHTLIGHT(glm::vec3(140, 255, 50)/255.0f, glm::vec3(1.0f), 1.0f);
@@ -17,6 +19,8 @@ public:
 		const std::string & meshId,
 		const std::string & name
 	);
+
+	GeometryNode(const GeometryNode& other);
 
 	bool select(){
 		if (isSelected){
@@ -40,3 +44,4 @@ public:
 
 	glm::vec3 uniq_color;
 };
+

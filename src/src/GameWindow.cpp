@@ -13,7 +13,7 @@ using namespace std;
 #include "include.hpp"
 #include "PlayerAI.hpp"
 #include "GameObject.hpp"
-
+#include "Animation.hpp"
 using namespace glm;
 using namespace std;
 static bool show_gui = true;
@@ -37,22 +37,22 @@ GameWindow::GameWindow(const vector<string> & luaSceneFile)
 
 void GameWindow::resetAll(){
 	//reset position, orientation and joint angles 
-	Player::get_instance()->get_root_node()->reset();
+	HumanPlayer::get_instance()->get_root_node()->reset();
 }
 
 void GameWindow::resetJoints(){
 	//reset position, orientation and joint angles 
-	Player::get_instance()->get_root_node()->init_joint_angle();
+	HumanPlayer::get_instance()->get_root_node()->init_joint_angle();
 }
 
 void GameWindow::resetPosition(){
 	//reset position
-	Player::get_instance()->get_root_node()->reset_position();
+	HumanPlayer::get_instance()->get_root_node()->reset_position();
 }
 
 void GameWindow::resetRotation(){
 	//reset joint angles 
-	Player::get_instance()->get_root_node()->reset_rotation();
+	HumanPlayer::get_instance()->get_root_node()->reset_rotation();
 }
 //----------------------------------------------------------------------------------------
 // Destructor
@@ -75,8 +75,12 @@ void GameWindow::init()
 	glGenVertexArrays(1, &m_vao_meshData);
 	enableVertexShaderInputSlots();
 
-	// set up node for ai and player
+	// set up node for ai and HumanPlayer
 	setup_player_AI();
+
+	// setup animation loader
+	AnimationLoader* l = AnimationLoader::get_instance();
+	
 
 	// Load and decode all .obj files at once here.  You may add additional .obj files to
 	// this list in order to support rendering additional mesh types.  All vertex
@@ -114,10 +118,13 @@ void GameWindow::init()
 }
 
 void GameWindow::setup_player_AI(){
-	// load player : Pikachu
+	// load HumanPlayer : Pikachu
 	auto pikachu_rootNode = processLuaSceneFile(m_luaSceneFile[0]);
-	Player::get_instance()->set_GameObject(new Pikachu(pikachu_rootNode));
+	HumanPlayer::get_instance()->set_GameObject(new Pikachu(pikachu_rootNode));
 	// TODO: load Snorlax
+	// load HumanPlayer : Pikachu
+	auto snorlax_rootNode = processLuaSceneFile(m_luaSceneFile[1]);
+	AI::get_instance()->set_GameObject(new Snorlax(snorlax_rootNode));
 }
 
 //----------------------------------------------------------------------------------------
@@ -126,7 +133,7 @@ std::shared_ptr<SceneNode> GameWindow::processLuaSceneFile(const std::string & f
 	// so that you'd launch the program with just the filename
 	// of a puppet in the Assets/ directory.
 	// std::string assetFilePath = getAssetFilePath(filename.c_str());
-	// Player::get_instance()->get_root_node() = std::shared_ptr<SceneNode>(import_lua(assetFilePath));
+	// HumanPlayer::get_instance()->get_root_node() = std::shared_ptr<SceneNode>(import_lua(assetFilePath));
 
 	// This version of the code treats the main program argument
 	// as a straightforward pathname.
@@ -251,7 +258,7 @@ void GameWindow::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void GameWindow::initViewMatrix() {
-	m_view = glm::lookAt(vec3(0.0f, 0.0f, 10.0f), vec3(0.0f, 0.0f, -1.0f),
+	m_view = glm::lookAt(vec3(0.0f, 0.0f, 20.0f), vec3(0.0f, 0.0f, -1.0f),
 			vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -428,7 +435,8 @@ void GameWindow::draw() {
 	if (m_z_buffer){
 		glEnable( GL_DEPTH_TEST );
 	}
-	Player::get_instance()->get_root_node()->accept(*this);
+	HumanPlayer::get_instance()->get_root_node()->accept(*this);
+	AI::get_instance()->get_root_node()->accept(*this);
 	if (m_z_buffer){
 		glDisable( GL_DEPTH_TEST );
 	}
@@ -528,10 +536,10 @@ bool GameWindow::mouseMoveEvent (
 			{
 			case ModelPosition:
 				if (m_left_click){
-					Player::get_instance()->get_root_node()->applyTranslate(vec3(x_diff, -y_diff, 0));
+					HumanPlayer::get_instance()->get_root_node()->applyTranslate(vec3(x_diff, -y_diff, 0));
 				}	 
 				if (m_middle_click){
-					Player::get_instance()->get_root_node()->applyTranslate(vec3(0, 0, y_diff));
+					HumanPlayer::get_instance()->get_root_node()->applyTranslate(vec3(0, 0, y_diff));
 				}
 				if (m_right_click){
 				}

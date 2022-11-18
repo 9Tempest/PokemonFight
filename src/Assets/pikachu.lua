@@ -312,6 +312,6 @@ tail_joint:rotate('x', -10)
 tail_joint:rotate('z', -30)
 tail_joint:translate(0, -2, -1.8)
 
-rootnode:translate(0, -2, -10.0)
+rootnode:translate(10, -2, -10.0)
 
 return rootnode

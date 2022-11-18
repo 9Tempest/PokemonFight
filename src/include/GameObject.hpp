@@ -2,12 +2,11 @@
 #include <string>
 #include <glm/glm.hpp>
 #include <memory.h>
-
+#include "Animation.hpp"
 
 class SceneNode;
 class Command;
 class AttackUnit;
-class Animation;
 
 enum class Status{
     Moving,
@@ -18,12 +17,11 @@ enum class Status{
     Dead
 };
 
-class GameObject{
+class GameObject : public Animator{
   protected:
     std::string m_name;
     glm::vec4 m_pos;
     int m_hp;
-    std::shared_ptr<SceneNode> m_node;
     Status m_status = Status::Idle;
 
   public:

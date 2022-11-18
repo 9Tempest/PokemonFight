@@ -11,7 +11,8 @@ using namespace std;
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/io.hpp>
-
+#include "GeometryNode.hpp"
+#include "JointNode.hpp"
 using namespace glm;
 
 
@@ -36,10 +37,21 @@ SceneNode::SceneNode(const SceneNode & other)
 	: m_nodeType(other.m_nodeType),
 	  m_name(other.m_name),
 	  trans(other.trans),
-	  invtrans(other.invtrans)
-{
+	  invtrans(other.invtrans),
+	  originalM(other.originalM),
+	  translateM(other.translateM),
+	  rotationM(other.rotationM),
+	  m_nodeId(nodeInstanceCount++)
+{	
 	for(SceneNode * child : other.children) {
-		this->children.push_front(new SceneNode(*child));
+		if (child->m_nodeType == NodeType::GeometryNode){
+			this->children.push_back(new GeometryNode(*(GeometryNode*)child));
+		}	else if (child->m_nodeType == NodeType::JointNode){
+				this->children.push_back(new JointNode(*(JointNode*)child));
+		}	else {
+			this->children.push_back(new SceneNode(*child));
+		}
+		
 	}
 }
 
@@ -123,7 +135,10 @@ void SceneNode::rotatelocal(char axis, float angle, const glm::mat4& recoveryM, 
 	mat4 rot_matrix = recoveryM * glm::rotate(degreesToRadians(angle), rot_axis) * inverse(recoveryM);
 	trans =  rot_matrix  * trans;
 	// if it's initial, count this rotation as original not rotationM
-	if (initial) originalM = rot_matrix * originalM;
+	if (initial) {
+		originalM = rot_matrix * originalM;
+	}
+	jointRotationM = rot_matrix * jointRotationM;
 	for (auto child : children){
 		child->rotatelocal(axis, angle, recoveryM, initial);
 	}
@@ -133,7 +148,9 @@ void SceneNode::rotatelocalxy(float angleX, float angleY, const glm::mat4& recov
 	mat4 rot_matrix_x = glm::rotate(degreesToRadians(angleX), vec3(0,0,1));
 	mat4 rot_matrix_y = glm::rotate(degreesToRadians(angleY), vec3(0,1,0));
 	mat4 rot_matrix = recoveryM * rot_matrix_x *rot_matrix_y  * inverse(recoveryM);
+	jointRotationM = rot_matrix * jointRotationM;
 	trans = rot_matrix * trans;
+	//cout << " 2in init joint node " << m_name << " has quat " << glm::quat_cast(jointRotationM)<<  " has rot " << jointRotationM << std::endl;
 	for (auto child : children){
 		child->rotatelocalxy(angleX, angleY, recoveryM);
 	}

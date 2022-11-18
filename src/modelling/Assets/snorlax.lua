@@ -244,7 +244,7 @@ neck:translate(0,8,0)
 
 
 
-rootNode:translate(-10, -2, -10.0)
+rootNode:translate(0, -2, -10.0)
 
 return rootNode
 

@@ -13,6 +13,11 @@ GeometryNode::GeometryNode(
 	m_nodeType = NodeType::GeometryNode;
 }
 
+GeometryNode::GeometryNode(const GeometryNode& other):SceneNode(other), material(other.material), meshId(other.meshId){
+	
+}
+
+
 JointNode* GeometryNode::get_upper_joint(){
 	SceneNode* curr = parent;
 	while( curr != nullptr && curr->m_nodeType != NodeType::JointNode){

@@ -6,7 +6,7 @@
 using namespace std;
 using namespace glm;
 
-GameObject::GameObject(std::string name, int hp, shared_ptr<SceneNode> node):m_name(name), m_hp(hp), m_node(node){
+GameObject::GameObject(std::string name, int hp, shared_ptr<SceneNode> node): Animator(node),m_name(name), m_hp(hp){
     m_pos = m_node->translateM[3];
 }
 

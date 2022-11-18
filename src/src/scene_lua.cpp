@@ -234,8 +234,6 @@ int gr_node_add_child_deepcpy_cmd(lua_State* L){
   luaL_argcheck(L, childdata != 0, 2, "Node expected");
 
   SceneNode* child = childdata->node;
-  std::cout << "here child is " << *child << std::endl;
-  std::cout << std::endl;
   if (child->m_nodeType == NodeType::GeometryNode){
     self->add_child(new GeometryNode(*(GeometryNode*)child));
   } else if (child->m_nodeType == NodeType::JointNode){

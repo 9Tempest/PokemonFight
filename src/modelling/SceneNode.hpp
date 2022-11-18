@@ -81,6 +81,7 @@ public:
     glm::mat4 originalM = glm::mat4();
     glm::mat4 translateM = glm::mat4();
     glm::mat4 rotationM = glm::mat4();
+    glm::mat4 jointRotationM = glm::mat4();
     
     std::list<SceneNode*> children;
 

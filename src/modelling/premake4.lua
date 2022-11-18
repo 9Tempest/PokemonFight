@@ -3,14 +3,14 @@
 -- Additional Linux libs: "X11", "Xxf86vm", "Xi", "Xrandr", "stdc++"
 
 includeDirList = {
-    "../../../shared",
-    "../../../shared/include",
-    "../../../shared/gl3w",
-    "../../../shared/imgui"
+    "../../shared",
+    "../../shared/include",
+    "../../shared/gl3w",
+    "../../shared/imgui"
 }
 
 libDirectories = { 
-    "../../../lib"
+    "../../lib"
 }
 
 

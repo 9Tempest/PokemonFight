@@ -3,10 +3,12 @@
 #pragma once
 
 #include "SceneNode.hpp"
-
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/io.hpp>
 class JointNode : public SceneNode {
 public:
 	JointNode(const std::string & name);
+	JointNode(const JointNode& other);
 	virtual ~JointNode();
 
 
@@ -21,10 +23,11 @@ public:
 		offset_y = m_angleY - m_joint_y.init;
 		m_angleX = m_joint_x.init;
 		m_angleY = m_joint_y.init;
+		rotatelocal('z', -offset_x, trans, is_init);
+		rotatelocal('y', -offset_y, trans, is_init);
 		for (auto child : children){
-			child->rotatelocal('z', -offset_x, trans, is_init);
-			child->rotatelocal('y', -offset_y, trans, is_init);
             child->init_joint_angle(is_init);
+			std::cout << " in init joint node " << m_name << " has quat " << glm::quat_cast(jointRotationM) << " has rot " << jointRotationM << std::endl;
         }
 	}
 
