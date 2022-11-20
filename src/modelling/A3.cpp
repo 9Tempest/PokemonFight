@@ -15,6 +15,9 @@ using namespace std;
 #include <glm/gtx/io.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "trackball.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/io.hpp>
 
 using namespace glm;
 
@@ -713,7 +716,9 @@ void A3::processPicking(){
 				if (res->m_name == "head"){
 					m_headNode = nullptr;
 				}
-				cout << " in init joint node " << joint->m_name << " has quat " << glm::quat_cast(joint->jointRotationM)<<  " has rot " << joint->jointRotationM <<  "  w is " <<glm::quat_cast(joint->jointRotationM).w << "  x is " <<glm::quat_cast(joint->jointRotationM).x << "  y is " <<glm::quat_cast(joint->jointRotationM).y << "  z is " <<glm::quat_cast(joint->jointRotationM).z  << std::endl;
+				glm::quat q = glm::quat_cast(joint->rotationAndTransl);
+				glm::vec3 t = glm::vec3(joint->rotationAndTransl[3]);
+				cout << " in init joint node " << joint->m_name << " has quat " << q <<  " has transl " << t <<  "  has trans " <<joint->rotationAndTransl << "product is " << glm::translate(t) * toMat4(q)   << std::endl;
 				selected_joints.erase(joint);
 			}
 		}	// if

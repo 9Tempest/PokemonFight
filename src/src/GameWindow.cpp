@@ -13,7 +13,6 @@ using namespace std;
 #include "include.hpp"
 #include "PlayerAI.hpp"
 #include "GameObject.hpp"
-#include "Animation.hpp"
 using namespace glm;
 using namespace std;
 static bool show_gui = true;
@@ -59,6 +58,12 @@ void GameWindow::resetRotation(){
 GameWindow::~GameWindow()
 {
 
+}
+
+static void set_anim_pika(const string& name){
+	Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name(name);
+	assert(ani_ptr);
+	HumanPlayer::get_instance()->get_GameObject()->do_animation(HumanPlayer::get_instance(), *ani_ptr);
 }
 
 //----------------------------------------------------------------------------------------
@@ -321,6 +326,8 @@ void GameWindow::appLogic()
 		glDisable(GL_CULL_FACE);
 	}
 	uploadCommonSceneUniforms();
+	HumanPlayer::get_instance()->get_GameObject()->update();
+	//cout << "frame counter is " << time(NULL) << endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -706,7 +713,7 @@ bool GameWindow::keyInputEvent (
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_A){
-			resetAll();
+			set_anim_pika("test");
 			eventHandled = true;
 		}
 

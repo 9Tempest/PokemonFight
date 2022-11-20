@@ -27,7 +27,6 @@ public:
 		rotatelocal('y', -offset_y, trans, is_init);
 		for (auto child : children){
             child->init_joint_angle(is_init);
-			std::cout << " in init joint node " << m_name << " has quat " << glm::quat_cast(jointRotationM) << " has rot " << jointRotationM << std::endl;
         }
 	}
 

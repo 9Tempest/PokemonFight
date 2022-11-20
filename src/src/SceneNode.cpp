@@ -135,7 +135,10 @@ void SceneNode::rotatelocal(char axis, float angle, const glm::mat4& recoveryM, 
 	mat4 rot_matrix = recoveryM * glm::rotate(degreesToRadians(angle), rot_axis) * inverse(recoveryM);
 	trans =  rot_matrix  * trans;
 	// if it's initial, count this rotation as original not rotationM
-	if (initial) originalM = rot_matrix * originalM;
+	if (initial) {
+		originalM = rot_matrix * originalM;
+	}
+	rotationAndTransl = rot_matrix * rotationAndTransl;
 	for (auto child : children){
 		child->rotatelocal(axis, angle, recoveryM, initial);
 	}
@@ -145,7 +148,9 @@ void SceneNode::rotatelocalxy(float angleX, float angleY, const glm::mat4& recov
 	mat4 rot_matrix_x = glm::rotate(degreesToRadians(angleX), vec3(0,0,1));
 	mat4 rot_matrix_y = glm::rotate(degreesToRadians(angleY), vec3(0,1,0));
 	mat4 rot_matrix = recoveryM * rot_matrix_x *rot_matrix_y  * inverse(recoveryM);
+	rotationAndTransl = rot_matrix * rotationAndTransl;
 	trans = rot_matrix * trans;
+	//cout << " 2in init joint node " << m_name << " has quat " << glm::quat_cast(jointRotationM)<<  " has rot " << jointRotationM << std::endl;
 	for (auto child : children){
 		child->rotatelocalxy(angleX, angleY, recoveryM);
 	}
@@ -181,6 +186,7 @@ void SceneNode::scale(const glm::vec3 & amount) {
 	mat4 T = glm::scale(amount);
 	trans = T * trans;
 	originalM = T * originalM;
+	scaleM = T * scaleM;
 	for (auto child : children){
 		child->scale(amount);
 	}
@@ -191,6 +197,7 @@ void SceneNode::translate(const glm::vec3& amount) {
 	mat4 T = glm::translate(amount);
 	trans = T * trans;
 	originalM = T * originalM;
+	rotationAndTransl = T * rotationAndTransl;
 	for (auto child : children){
 		child->translate(amount);
 	}
@@ -200,6 +207,7 @@ void SceneNode::applyTranslate(const glm::vec3& amount){
 	mat4 T = glm::translate(amount);
 	trans = T * trans;
 	translateM = T * translateM;
+	rotationAndTransl = T * rotationAndTransl;
 	for (auto child : children){
 		child->applyTranslate(amount);
 	}
@@ -207,10 +215,11 @@ void SceneNode::applyTranslate(const glm::vec3& amount){
 
 
 
-void SceneNode::transform(const glm::mat4& mat){
+void SceneNode::applyRotTranslTransform(const glm::mat4& mat){
+	rotationAndTransl = mat * rotationAndTransl;
 	trans = mat * trans;
 	for (auto child : children){
-		child->transform(mat);
+		child->applyRotTranslTransform(mat);
 	}
 }
 
@@ -269,6 +278,7 @@ void SceneNode::applyRotMat(const glm::mat4& rot, const glm::mat4& recoveryM){
 	mat4 R = recoveryM * rot * inverse(recoveryM);
 	trans = R * trans;
 	rotationM = R * rotationM;
+	rotationAndTransl = R * rotationAndTransl;
 	for (auto child : children){
 		child->applyRotMat(rot, recoveryM);
 	}

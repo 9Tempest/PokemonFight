@@ -1,4 +1,4 @@
-#pragma
+#pragma once
 #include "GameObject.hpp"
 
 class Player : public Visitor{
@@ -8,12 +8,14 @@ class Player : public Visitor{
         std::unordered_map<std::string, SceneNode*> m_node_mapping;
 
         void load_mapping(SceneNode* root_node){
+            std::cout << "load mapping for" <<  m_obj->get_name() << std::endl;
             root_node->accept(*this);
         }
 
     public:
         void visit(SceneNode* node){
             m_node_mapping[node->m_name] = node;
+            std::cout << node->m_name << " maps to " << node << std::endl;
         }
 
         virtual ~Player(){
@@ -37,7 +39,10 @@ class Player : public Visitor{
         }
 
         SceneNode* get_node_by_name(const std::string& name){
-            return m_node_mapping[name];
+            if (m_node_mapping.find(name) != m_node_mapping.end())
+                return m_node_mapping[name];
+            std::cout << "cannot find node " << name << std::endl;
+            return nullptr;
         }
 
 };

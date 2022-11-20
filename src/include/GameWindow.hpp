@@ -110,7 +110,7 @@ protected:
 
 
 	// recursive render
-	virtual void visit(SceneNode* node){
+	virtual void visit(SceneNode* node) override{
 		renderSceneGraph(*node);
 	}
 

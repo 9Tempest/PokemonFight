@@ -1,3 +1,4 @@
+
 /Makefile
 A*/Makefile
 Index_Example*/Makefile
@@ -21,11 +22,8 @@ imgui.ini
 
 # Ignore Assignment binary names
 
-project/src/game
-project/src/modelling
 
-
-/project/proposal.*
+/docs/proposal.*
 !/project/proposal.tex
 
 

@@ -1,5 +1,5 @@
 -- pikachu.lua
--- model for pikachu
+-- modelling for pikachu
 
 white = gr.material({1,1,1}, {0.1, 0.1, 0.1}, 10)
 yellow = gr.material({0.9568627,0.8627451,0.1490196}, {0.0, 0.0, 0.0}, 5)
@@ -116,16 +116,18 @@ shoulderr =  gr.joint('shoulderr', {-30,0, 30}, {0, 0, 0})
 turso:add_child(shoulderr)
 large_arm_r = gr.mesh('sphere', 'large_arm_r')
 large_arm_r:set_material(yellow2)
-large_arm_r:translate(1.2,0,0)
 large_arm_r:scale(2,1,1)
+large_arm_r:translate(2.4,0,0)
+
 shoulderr:add_child(large_arm_r)
 -- small arm
 elbowr = gr.joint('elbowr', {0,0, 0}, {-60, 0, 60})
 large_arm_r:add_child(elbowr)
 small_arm_r = gr.mesh('sphere', 'small_arm_r')
 small_arm_r:set_material(yellow2)
-small_arm_r:translate(0.8,0,0)
 small_arm_r:scale(0.5,0.5,0.5)
+small_arm_r:translate(0.4,0,0)
+
 
 -- fingers
 right_finger1_joint = gr.joint('f1_jointr', {0,0, 0}, {-10, 0, 30})
@@ -136,6 +138,8 @@ right_finger1:set_material(yellow2)
 right_finger1:scale(0.1, 0.1, 0.1)
 right_finger1:translate(0.95, 0, 0)
 
+
+
 right_finger2_joint = gr.joint('f2_jointr', {0,0, 0}, {-10, 0, 30})
 small_arm_r:add_child(right_finger2_joint)
 right_finger2 = gr.mesh('sphere', 'rfinger2')
@@ -144,6 +148,8 @@ right_finger2:set_material(yellow2)
 right_finger2:scale(0.1, 0.1, 0.1)
 right_finger2:translate(0.9, 0.2, 0)
 
+
+
 right_finger3_joint = gr.joint('f3_jointr', {0,0, 0}, {-10, 0, 30})
 small_arm_r:add_child(right_finger3_joint)
 right_finger3 = gr.mesh('sphere', 'rfinger3')
@@ -151,6 +157,8 @@ right_finger3_joint:add_child(right_finger3)
 right_finger3:set_material(yellow2)
 right_finger3:scale(0.1, 0.1, 0.1)
 right_finger3:translate(0.9, -0.2, 0)
+
+
 
 elbowr:add_child(small_arm_r)
 elbowr:translate(3.8,0,0)
@@ -161,16 +169,17 @@ shoulderl =  gr.joint('shoulderl', {-30,0, 30}, {0, 0, 0})
 turso:add_child(shoulderl)
 large_arm_l = gr.mesh('sphere', 'large_arm_l')
 large_arm_l:set_material(yellow2)
-large_arm_l:translate(-1.2,0,0)
 large_arm_l:scale(2,1,1)
+large_arm_l:translate(-2.4,0,0)
 shoulderl:add_child(large_arm_l)
 -- small arm
 elbowl = gr.joint('elbowr', {0,0, 0}, {-30, 0, 60})
 large_arm_l:add_child(elbowl)
 small_arm_l = gr.mesh('sphere', 'small_arm_r')
 small_arm_l:set_material(yellow2)
-small_arm_l:translate(-0.8,0,0)
 small_arm_l:scale(0.5,0.5,0.5)
+small_arm_l:translate(-0.4,0,0)
+
 
 -- fingers
 left_finger1_joint = gr.joint('f1_joint', {0,0, 0}, {-10, 0, 30})
@@ -312,6 +321,6 @@ tail_joint:rotate('x', -10)
 tail_joint:rotate('z', -30)
 tail_joint:translate(0, -2, -1.8)
 
-rootnode:translate(10, -2, -10.0)
+rootnode:translate(0, -2, -10.0)
 
 return rootnode

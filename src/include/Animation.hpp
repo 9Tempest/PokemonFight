@@ -3,7 +3,8 @@
 #include <string>
 #include "include.hpp"
 #include <vector>
-
+#include "timestamp.hpp"
+#include <deque>
 #define SNORLAX_ANI_ASSET "Assets/snorlax.ani"
 #define PIKACHU_ANI_ASSET "Assets/pikachu.ani"
 
@@ -13,11 +14,14 @@ class Player;
 class JointTransform{   
 
     public:
-        glm::vec3 position;
-        glm::quat rotation;
+        glm::mat4 trans;
         //JointTransform(const glm::quat& rotation):rotation(rotation){}
-        glm::mat4 get_transform_mat(){
-            return glm::translate(position) * glm::toMat4(rotation);
+        glm::mat4 get_transform_mat() const{
+            return trans;
+        }
+
+        static glm::mat4 interpolate(const JointTransform& transA, const JointTransform& transB, float progression){
+            return glm::interpolate(transA.get_transform_mat(), transB.get_transform_mat(), progression);
         }
 };
 
@@ -38,16 +42,16 @@ class Animation{
     public:
     std::string m_name;
     std::vector<KeyFrame> m_frames;
-    float m_start_stamp;
     float m_end_stamp;
     uint m_curr_frame_idx;
     Animation( const std::string& name, const std::vector<KeyFrame> frames) 
-        : m_name(name), m_frames(frames), m_start_stamp((*frames.begin()).time_stamp), m_end_stamp(frames.back().time_stamp), m_curr_frame_idx(0){}
+        : m_name(name), m_frames(frames), m_end_stamp(frames.back().time_stamp), m_curr_frame_idx(0){}
     
     Animation( const Animation& other) 
-        : m_name(other.m_name), m_frames(other.m_frames), m_start_stamp((*other.m_frames.begin()).time_stamp), m_end_stamp((*other.m_frames.end()).time_stamp), m_curr_frame_idx(0){}
+        : m_name(other.m_name), m_frames(other.m_frames), m_end_stamp((*other.m_frames.end()).time_stamp), m_curr_frame_idx(0){}
 
-    Animation(){}
+    Animation():m_curr_frame_idx(0.0f){}
+
 
 };
 
@@ -55,26 +59,29 @@ class Animator{
     protected:
     std::shared_ptr<SceneNode> m_node;
     private:
-    Animation* m_curr_anim;
+    bool m_has_anim = false;
+    Animation m_curr_anim;
     float m_anim_time;
+    time_stamp m_curr_ts;
 
     void increase_animation_time(){
-
+        m_anim_time = get_time_diff(m_curr_ts, get_curr_time());
     }
 
     void get_prev_next_keyframe(KeyFrame** prev_frame, KeyFrame** next_frame){
-        *prev_frame = &m_curr_anim->m_frames[m_curr_anim->m_curr_frame_idx];
-        assert(m_curr_anim->m_curr_frame_idx < m_curr_anim->m_frames.size()-1);
-        *next_frame = &m_curr_anim->m_frames[m_curr_anim->m_curr_frame_idx+1];
+        *prev_frame = &m_curr_anim.m_frames[m_curr_anim.m_curr_frame_idx];
+        assert(m_curr_anim.m_curr_frame_idx < m_curr_anim.m_frames.size()-1);
+        *next_frame = &m_curr_anim.m_frames[m_curr_anim.m_curr_frame_idx+1];
     }
 
+    std::unordered_map<SceneNode*, glm::mat4> calculateCurrPose(KeyFrame * f1, KeyFrame* f2);
+
     public:
-        Animator(std::shared_ptr<SceneNode> node): m_node(node){}
-        void update();
-        void do_animation(Animation& anim){
-            m_curr_anim = &anim;
-            m_anim_time = 0;
+        Animator(std::shared_ptr<SceneNode> node): m_node(node){
+            m_curr_ts = get_curr_time();
         }
+        void update();
+        void do_animation(Player* p,  const Animation& anim);
 };
 
 class AnimationLoader{
