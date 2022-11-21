@@ -62,24 +62,22 @@ pow3:add_child_deepcpy(pow_poly)
 pow3:translate(-0.2, 0, -0.4)
 elbowr:translate(5.6,0,0)
 
+shoulderr:scale(1.6,1.3,1.2)
+shoulderr:rotate('z', -30)
+shoulderr:translate(2,6,0.0)
+
 armr = gr.node('armr')
 armr:add_child_deepcpy(shoulderr)
-armr:scale(1.6,1.3,1.2)
-armr:rotate('z', -30)
-armr:translate(2,6,0.0)
 turso:add_child(armr)
 
 arml = gr.node('arml')
 arml:add_child_deepcpy(shoulderr)
-arml:scale(1.6,1.3,1.2)
-arml:rotate('z', -30)
-arml:translate(2,6,0.5)
 arml:rotate('y', 190)
 turso:add_child(arml)
 
 
 -- leg part
-leg_joint_r = gr.joint('leg_joint_r', {-30, 0, 30}, {0,0,0})
+leg_joint_r = gr.joint('leg_joint_r', {-60, 0, 60}, {0,0,0})
 leg_r = gr.mesh('sphere', 'leg_r')
 leg_r:set_material(TealBlue)
 leg_r:scale(3.8, 3.8, 2.8)
@@ -114,13 +112,14 @@ keen_joint_r:add_child(small_leg_r)
 keen_joint_r:translate(0.5, -2.5, 0)
 
 leg_r:translate(1, -0.8, 0)
+leg_joint_r:rotate('x', -60)
 leg_joint_r:translate(3.0, -2.0, 0.0)
 leg_instance_r = gr.node('leg_instance_r')
 leg_instance_r:add_child_deepcpy(leg_joint_r)
 turso:add_child(leg_instance_r)
 
 
-leg_joint_l = gr.joint('leg_joint_l', {-30, 0, 30}, {0,0,0})
+leg_joint_l = gr.joint('leg_joint_l', {-60, 0, 60}, {0,0,0})
 leg_l = gr.mesh('sphere', 'leg_l')
 leg_l:set_material(TealBlue)
 leg_l:scale(3.8, 3.8, 2.8)
@@ -155,6 +154,7 @@ keen_joint_l:add_child(small_leg_l)
 keen_joint_l:translate(-0.5, -2.5, 0)
 
 leg_l:translate(-1, -0.8, 0)
+leg_joint_l:rotate('x', -60)
 leg_joint_l:translate(-3.0, -2.0, 0.0)
 leg_instance_l = gr.node('leg_instance_l')
 leg_instance_l:add_child_deepcpy(leg_joint_l)

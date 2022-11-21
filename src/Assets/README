@@ -1,0 +1,7 @@
+Animation file .ani has the following protocol
+
+${Animation Name} ${num of frames}
+#first frame
+${num of nodes} ${time stamp}
+node1 quat.w quat.x quat.y quat.z transl.x transl.y transl.z
+...

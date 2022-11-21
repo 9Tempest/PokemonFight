@@ -35,7 +35,7 @@ SceneNode::SceneNode(const std::string& name)
 // Deep copy
 SceneNode::SceneNode(const SceneNode & other)
 	: m_nodeType(other.m_nodeType),
-	  m_name(other.m_name),
+	  m_name(other.m_name + std::to_string(nodeInstanceCount)),
 	  trans(other.trans),
 	  invtrans(other.invtrans),
 	  originalM(other.originalM),

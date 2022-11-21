@@ -32,33 +32,37 @@ static float calcProgression(float curr_ts, KeyFrame * f1, KeyFrame* f2){
 }
 
 static void print_pose(const unordered_map<SceneNode*, mat4>& poses){
-    cout << "Printing poses " << endl;
+    //cout << "Printing poses " << endl;
     for (auto& p : poses){
         cout << p.first->m_name << "->" << endl;
         cout << p.second << endl;
     }
 }
 
-static void apply_poses_to_nodes(const unordered_map<SceneNode*, mat4>& poses){
+void Animator::apply_poses_to_nodes(const unordered_map<SceneNode*, mat4>& poses){
     for (auto& p : poses){
-        mat4 trans =  p.second * inverse(p.first->rotationAndTransl);
+        mat4 trans =  m_node->trans * p.second * inverse(p.first->rotationAndTransl);
         p.first->applyRotTranslTransform(trans);
     }
 }
 
 std::unordered_map<SceneNode*, mat4> Animator::calculateCurrPose(KeyFrame * f1, KeyFrame* f2){
     float progression = calcProgression(m_anim_time, f1, f2);
-    cout << "progression is " << progression << endl;
+    //cout << "progression is " << progression << endl;
     std::unordered_map<SceneNode*, mat4> poses;
     for (auto & p : f1->transforms){
+        if (f2->transforms.find(p.first) == f2->transforms.end()) continue;
         poses[p.first] = JointTransform::interpolate(p.second, f2->transforms[p.first], progression);
+        if (p.first == m_node.get()){
+            cout << "mat is " << poses[p.first] << endl;
+        }
     }
     return move(poses);
 }
 
 void Animator::update(){
     if (m_has_anim == false) {
-        DLOG("no ani here!");
+        //DLOG("no ani here!");
         return;
     }
     
@@ -74,7 +78,7 @@ void Animator::update(){
     }
     // update animation frame idx if possible
     update_ani(m_curr_anim, m_anim_time);
-    cout << "curr anim frame idx is " << m_curr_anim.m_curr_frame_idx << " curr ts is " << m_anim_time << " end ts is " << m_curr_anim.m_end_stamp << endl;
+    //cout << "curr anim frame idx is " << m_curr_anim.m_curr_frame_idx << " curr ts is " << m_anim_time << " end ts is " << m_curr_anim.m_end_stamp << endl;
 
     KeyFrame* f1;
     KeyFrame* f2;
@@ -100,7 +104,7 @@ void Animator::do_animation(Player* p,  const Animation& anim){
     // create frame 0
     JointMap map_0;
     for (auto& p : anim.m_frames[0].transforms){
-        map_0[p.first] = JointTransform{p.first->rotationAndTransl};
+        map_0[p.first] = JointTransform{inverse(m_node->trans)* p.first->rotationAndTransl};
     }
     assert(m_curr_anim.m_frames.size() == 0 && m_curr_anim.m_curr_frame_idx == 0);
     // copy anim
@@ -126,6 +130,7 @@ void Animator::do_animation(Player* p,  const Animation& anim){
 /* Animation Loader */
 AnimationLoader::AnimationLoader(){
     load_asset(PIKACHU_ANI_ASSET, HumanPlayer::get_instance());
+    load_asset(SNORLAX_ANI_ASSET, AI::get_instance());
     print_assets();
 }
 
@@ -161,7 +166,7 @@ void AnimationLoader::load_asset(const string& fname, Player* player){
                 ifs >> joint_name;
                 ifs >> rotation_quat.w >> rotation_quat.x >> rotation_quat.y >> rotation_quat.z;
                 ifs >> transl_vec.x >> transl_vec.y >> transl_vec.z;
-                cout << "joint name is " << joint_name << endl;
+                //cout << "joint name is " << joint_name << "ts is "<<time_stamp<<  endl;
                 SceneNode* joint_node = player->get_node_by_name(joint_name);
                 assert(joint_node != nullptr);
                 jointMap[joint_node] = JointTransform{translate(transl_vec) * toMat4(rotation_quat)};

@@ -65,15 +65,55 @@ elbowr:translate(5.6,0,0)
 shoulderr:scale(1.6,1.3,1.2)
 shoulderr:rotate('z', -30)
 shoulderr:translate(2,6,0.0)
+turso:add_child(shoulderr)
 
-armr = gr.node('armr')
-armr:add_child_deepcpy(shoulderr)
-turso:add_child(armr)
 
-arml = gr.node('arml')
-arml:add_child_deepcpy(shoulderr)
-arml:rotate('y', 190)
-turso:add_child(arml)
+
+
+shoulderl =  gr.joint('shoulderl', {-30,0, 30}, {0, 0, 0})
+large_arm_l = gr.mesh('sphere', 'large_arm_l')
+large_arm_l:set_material(TealBlue)
+large_arm_l:scale(3,1.5,2)
+large_arm_l:translate(-3.6,0,0)
+
+shoulderl:add_child(large_arm_l)
+-- small arm
+elbowl = gr.joint('elbowl', {-30,0, 30}, {0, 0, 0})
+large_arm_l:add_child(elbowl)
+small_arm_l = gr.mesh('sphere', 'small_arm_l')
+elbowl:add_child(small_arm_l)
+small_arm_l:set_material(TealBlue)
+small_arm_l:scale(1,1,1)
+
+-- pow
+pow_poly = gr.mesh('cone', 'pow')
+pow_poly:set_material(white)
+pow_poly:scale(0.2, 0.2, 0.2)
+pow_poly:rotate('z', -90)
+pow_poly:translate(-1.2,0,0)
+pow1 = gr.node('pow1')
+small_arm_l:add_child(pow1)
+pow1:add_child_deepcpy(pow_poly)
+pow2 = gr.node('pow2')
+small_arm_l:add_child(pow2)
+pow2:add_child_deepcpy(pow_poly)
+pow2:translate(0.2, 0, 0.4)
+pow3 = gr.node('pow3')
+small_arm_l:add_child(pow3)
+pow3:add_child_deepcpy(pow_poly)
+pow3:translate(0.4, 0, 0.8)
+pow3 = gr.node('pow4')
+small_arm_l:add_child(pow3)
+pow3:add_child_deepcpy(pow_poly)
+pow3:translate(0.2, 0, -0.4)
+elbowl:translate(5.6,0,0)
+
+shoulderl:scale(1.6,1.3,1.2)
+shoulderl:rotate('z', -30)
+shoulderl:translate(-2,6,0.0)
+turso:add_child(shoulderl)
+
+turso:add_child(shoulderl)
 
 
 -- leg part

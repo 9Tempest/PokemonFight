@@ -66,6 +66,12 @@ static void set_anim_pika(const string& name){
 	HumanPlayer::get_instance()->get_GameObject()->do_animation(HumanPlayer::get_instance(), *ani_ptr);
 }
 
+static void set_anim_snorlax(const string& name){
+	Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name(name);
+	assert(ani_ptr);
+	AI::get_instance()->get_GameObject()->do_animation(AI::get_instance(), *ani_ptr);
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once, at program start.
@@ -123,13 +129,14 @@ void GameWindow::init()
 }
 
 void GameWindow::setup_player_AI(){
+	auto snorlax_rootNode = processLuaSceneFile(m_luaSceneFile[1]);
+	AI::get_instance()->set_GameObject(new Snorlax(snorlax_rootNode));
 	// load HumanPlayer : Pikachu
 	auto pikachu_rootNode = processLuaSceneFile(m_luaSceneFile[0]);
 	HumanPlayer::get_instance()->set_GameObject(new Pikachu(pikachu_rootNode));
 	// TODO: load Snorlax
 	// load HumanPlayer : Pikachu
-	auto snorlax_rootNode = processLuaSceneFile(m_luaSceneFile[1]);
-	AI::get_instance()->set_GameObject(new Snorlax(snorlax_rootNode));
+	
 }
 
 //----------------------------------------------------------------------------------------
@@ -325,8 +332,10 @@ void GameWindow::appLogic()
 	}	else {
 		glDisable(GL_CULL_FACE);
 	}
-	uploadCommonSceneUniforms();
 	HumanPlayer::get_instance()->get_GameObject()->update();
+	AI::get_instance()->get_GameObject()->update();
+	uploadCommonSceneUniforms();
+	
 	//cout << "frame counter is " << time(NULL) << endl;
 }
 
@@ -672,50 +681,27 @@ bool GameWindow::keyInputEvent (
 	bool eventHandled(false);
 
 	if( action == GLFW_PRESS ) {
-		if( key == GLFW_KEY_M ) {
-			show_gui = !show_gui;
-			eventHandled = true;
-		}
-		if (key == GLFW_KEY_P){
-			m_option_model = ModelPosition;
-			eventHandled = true;
-		}
-		if (key == GLFW_KEY_J){
-			m_option_model = ModelJoints;
-			eventHandled = true;
-		}
 		if (key == GLFW_KEY_Q){
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
 			eventHandled = true;
 		}
-		if (key == GLFW_KEY_Z){
-			m_z_buffer = !m_z_buffer;
+		if (key == GLFW_KEY_J){
+			set_anim_pika("pikachu_attack");
 			eventHandled = true;
 		}
-		if (key == GLFW_KEY_B){
-			m_backface = !m_backface;
-			eventHandled = true;
-		}
-		if (key == GLFW_KEY_F){
-			m_frontface = !m_frontface;
-			eventHandled = true;
-		}
-		if (key == GLFW_KEY_I){
-			resetPosition();
+		if (key == GLFW_KEY_W){
+			set_anim_pika("pikachu_move");
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_O){
-			resetRotation();
+			set_anim_snorlax("snorlax_bodyslam_up");
 			eventHandled = true;
 		}
-		if (key == GLFW_KEY_S){
-			resetJoints();
+		if (key == GLFW_KEY_L){
+			set_anim_snorlax("snorlax_bodyslam_down");
 			eventHandled = true;
 		}
-		if (key == GLFW_KEY_A){
-			set_anim_pika("test");
-			eventHandled = true;
-		}
+
 
 
 	}

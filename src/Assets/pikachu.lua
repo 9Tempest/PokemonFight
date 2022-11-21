@@ -26,6 +26,7 @@ head:scale(3.5,3,3)
 neck:add_child(head)
 
 
+
 -- construct head components
 
 --ear right
@@ -173,7 +174,7 @@ large_arm_l:scale(2,1,1)
 large_arm_l:translate(-2.4,0,0)
 shoulderl:add_child(large_arm_l)
 -- small arm
-elbowl = gr.joint('elbowr', {0,0, 0}, {-30, 0, 60})
+elbowl = gr.joint('elbowl', {0,0, 0}, {-30, 0, 60})
 large_arm_l:add_child(elbowl)
 small_arm_l = gr.mesh('sphere', 'small_arm_r')
 small_arm_l:set_material(yellow2)
@@ -211,34 +212,30 @@ shoulderl:translate(-1, 2.5, 0.5)
 
 
 -- large leg left
-leg_joint_l = gr.joint('leg_joint_l',{-30, 0, 30},{0,0,0})
+leg_joint_l = gr.joint('leg_joint_l',{-30, 0, 60},{0,0,0} )
 turso:add_child(leg_joint_l)
 leg_l = gr.mesh('sphere', 'leg_l')
 leg_l:set_material(yellow2)
 leg_l:scale(1.8, 1.8, 1.8)
 leg_joint_l:add_child(leg_l)
-keen_joint_l = gr.joint('keen_joint_l',{0,0,0}, {-60, -30, 0})
+keen_joint_l = gr.joint('keen_joint_l',{-60,0,30}, {0, 0, 0})
 leg_l:add_child(keen_joint_l)
 small_leg_l = gr.mesh('sphere', 'small_leg_l')
 small_leg_l:set_material(yellow2)
 small_leg_l:scale(0.5,1.5, 0.5)
-small_leg_l:rotate('x', -60)
-
---foot_joint_l = gr.joint('foot_joint_l',{0,0,0}, {-30, 30, 60})
--- foot_l = gr.mesh('sphere', 'foot_l')
--- foot_l:set_material(yellow2)
--- foot_l:scale(1, 0.2, 0.5)
--- foot_joint_l:add_child(foot_l)
--- foot_joint_l:translate(0, -0.5, 0)
--- small_leg_l:add_child(foot_joint_l)
+small_leg_l:rotate('x', -80)
+small_leg_l:translate(0, -2, 0)
 keen_joint_l:add_child(small_leg_l)
-keen_joint_l:translate(0, -2, 0)
+keen_joint_l:rotate('y', -20)
+
+
+
 leg_l:translate(-1, -1.0, 0)
 leg_joint_l:translate(-0.8, -1.5, 0.5)
 
 
 -- large leg right
-leg_joint_r = gr.joint('leg_joint_r', {-30, 0, 30}, {0,0,0})
+leg_joint_r = gr.joint('leg_joint_r',{-30,0,60}, {0, 0, 0} )
 turso:add_child(leg_joint_r)
 leg_r = gr.mesh('sphere', 'leg_r')
 leg_r:set_material(yellow2)
@@ -246,14 +243,16 @@ leg_r:scale(1.8, 1.8, 1.8)
 
 leg_joint_r:add_child(leg_r)
 
-keen_joint_r = gr.joint('keen_joint_r',{0,0,0}, {0, 30, 60})
+keen_joint_r = gr.joint('keen_joint_r',{-60,0,30}, {0, 0, 0})
 leg_r:add_child(keen_joint_r)
 small_leg_r = gr.mesh('sphere', 'small_leg_r')
 small_leg_r:set_material(yellow2)
 small_leg_r:scale(0.5,1.5, 0.5)
-small_leg_r:rotate('x', -60)
+small_leg_r:rotate('x', -80)
+small_leg_r:translate(0, -2, 0)
+
 keen_joint_r:add_child(small_leg_r)
-keen_joint_r:translate(0, -2, 0)
+keen_joint_r:rotate('y', 20)
 
 leg_r:translate(1, -1, 0)
 leg_joint_r:translate(0.8, -1.5, 0.5)
@@ -321,6 +320,8 @@ tail_joint:rotate('x', -10)
 tail_joint:rotate('z', -30)
 tail_joint:translate(0, -2, -1.8)
 
-rootnode:translate(0, -2, -10.0)
+-- rootnode:rotate('y', 70)
+-- rootnode:rotate('z', -70)
+rootnode:translate(10, -2, -10.0)
 
 return rootnode

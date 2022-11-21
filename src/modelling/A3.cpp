@@ -716,9 +716,12 @@ void A3::processPicking(){
 				if (res->m_name == "head"){
 					m_headNode = nullptr;
 				}
-				glm::quat q = glm::quat_cast(joint->rotationAndTransl);
-				glm::vec3 t = glm::vec3(joint->rotationAndTransl[3]);
+				mat4 modelling_mat = inverse(m_rootNode->trans) * joint->rotationAndTransl;
+				glm::quat q = glm::quat_cast(modelling_mat);
+				glm::vec3 t = glm::vec3(modelling_mat[3]);
 				cout << " in init joint node " << joint->m_name << " has quat " << q <<  " has transl " << t <<  "  has trans " <<joint->rotationAndTransl << "product is " << glm::translate(t) * toMat4(q)   << std::endl;
+				
+				cout << joint->m_name  << " "<<  q.w << " " << q.x << " " << q.y << " " << q.z <<  " " << t.x << " " << t.y << " " << t.z  << std::endl;
 				selected_joints.erase(joint);
 			}
 		}	// if

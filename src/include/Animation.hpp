@@ -64,6 +64,8 @@ class Animator{
     float m_anim_time;
     time_stamp m_curr_ts;
 
+    void apply_poses_to_nodes(const std::unordered_map<SceneNode*, glm::mat4>& poses);
+
     void increase_animation_time(){
         m_anim_time = get_time_diff(m_curr_ts, get_curr_time());
     }
