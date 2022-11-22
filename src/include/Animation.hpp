@@ -78,12 +78,21 @@ class Animator{
 
     std::unordered_map<SceneNode*, glm::mat4> calculateCurrPose(KeyFrame * f1, KeyFrame* f2);
 
+    protected:
+        void body_trans(glm::vec3& curr, const glm::vec3& tmp_curr,const glm::vec3& target);
+
     public:
+        bool get_has_anim() const{
+            return m_has_anim;
+        }
+        float get_anim_len() const{
+            return m_curr_anim.m_end_stamp;
+        }
         Animator(std::shared_ptr<SceneNode> node): m_node(node){
             m_curr_ts = get_curr_time();
         }
-        void update();
-        void do_animation(Player* p,  const Animation& anim);
+        virtual void update();
+        void do_animation(const Animation& anim);
 };
 
 class AnimationLoader{

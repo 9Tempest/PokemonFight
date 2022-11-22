@@ -60,6 +60,16 @@ std::unordered_map<SceneNode*, mat4> Animator::calculateCurrPose(KeyFrame * f1, 
     return move(poses);
 }
 
+void Animator::body_trans(glm::vec3& curr, const glm::vec3& tmp_curr, const glm::vec3& target){
+    float progression = calcProgression(m_anim_time, &m_curr_anim.m_frames[0], &m_curr_anim.m_frames.back());
+    mat4 T_curr = glm::translate(tmp_curr);
+    mat4 T_target = glm::translate(target);
+    mat4 trans = interpolate(T_curr, T_target, progression);
+    vec3 offset = vec3(trans[3] ) - curr;
+    curr += offset;
+    m_node->applyRotTranslTransform(glm::translate(offset));
+}
+
 void Animator::update(){
     if (m_has_anim == false) {
         //DLOG("no ani here!");
@@ -97,7 +107,7 @@ void Animator::update(){
     
 }
 
-void Animator::do_animation(Player* p,  const Animation& anim){
+void Animator::do_animation( const Animation& anim){
     // clear previous ani
     clear_ani(m_curr_anim);
     m_anim_time = 0;

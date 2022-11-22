@@ -63,13 +63,13 @@ GameWindow::~GameWindow()
 static void set_anim_pika(const string& name){
 	Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name(name);
 	assert(ani_ptr);
-	HumanPlayer::get_instance()->get_GameObject()->do_animation(HumanPlayer::get_instance(), *ani_ptr);
+	HumanPlayer::get_instance()->get_GameObject()->do_animation( *ani_ptr);
 }
 
 static void set_anim_snorlax(const string& name){
 	Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name(name);
 	assert(ani_ptr);
-	AI::get_instance()->get_GameObject()->do_animation(AI::get_instance(), *ani_ptr);
+	AI::get_instance()->get_GameObject()->do_animation( *ani_ptr);
 }
 
 //----------------------------------------------------------------------------------------
@@ -691,6 +691,7 @@ bool GameWindow::keyInputEvent (
 		}
 		if (key == GLFW_KEY_W){
 			set_anim_pika("pikachu_move");
+			HumanPlayer::get_instance()->get_GameObject()->move(2,2);
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_O){

@@ -20,7 +20,9 @@ enum class Status{
 class GameObject : public Animator{
   protected:
     std::string m_name;
-    glm::vec4 m_pos;
+    glm::vec3 m_pos;
+    glm::vec3 m_tmp_pos; // for move interpolation
+    glm::vec3 m_target_pos;
     int m_hp;
     Status m_status = Status::Idle;
 
@@ -32,7 +34,7 @@ class GameObject : public Animator{
     GameObject(std::string name, int hp, std::shared_ptr<SceneNode> node);
     // for debugging purpose
     std::string get_name() const {return m_name;}
-    glm::vec4 get_pos() const {return m_pos;}
+    glm::vec3 get_pos() const {return m_pos;}
     int get_hp() const {return m_hp;}
     SceneNode* get_rootNode() const {return m_node.get();}
 
@@ -64,7 +66,8 @@ class Pikachu: public GameObject{
 
     }
     ~Pikachu();
-
+    void update() override;
+    void move(float x, float y) override;
     AttackUnit* attack(const std::string& name,  GameObject* target) override;
     void under_attack(AttackUnit* attackUnit) override;
 
@@ -77,7 +80,7 @@ class Snorlax: public GameObject{
 
     }
     ~Snorlax();
-
+    //void update() override;
     AttackUnit* attack(const std::string& name,  GameObject* target) override;
     void under_attack(AttackUnit* attackUnit) override;
 
