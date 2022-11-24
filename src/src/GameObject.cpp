@@ -6,8 +6,8 @@
 using namespace std;
 using namespace glm;
 
-GameObject::GameObject(std::string name, int hp, shared_ptr<SceneNode> node): Animator(node),m_name(name), m_hp(hp), m_status(Status::Idle){
-    m_pos = vec3(m_node->translateM[3]);
+GameObject::GameObject(std::string name, int hp, shared_ptr<SceneNode> node): Animator(node), m_name(name), m_hp(hp), m_status(Status::Idle){
+    m_pos = vec3(m_node->trans[3]);
     m_target_pos = m_pos;
 }
 

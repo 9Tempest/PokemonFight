@@ -11,6 +11,7 @@
 #include <memory>
 #include <unordered_map>
 #include "JointNode.hpp"
+#include "particle.hpp"
 #include <iostream>
 enum OptionModel {
 	ModelPosition,
@@ -63,7 +64,7 @@ protected:
 	void initPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
 	void renderSceneGraph(const SceneNode &node);
-	void renderArcCircle();
+	void renderParticles(const ParticleSystem& ps);
 
 	void processPicking();
 

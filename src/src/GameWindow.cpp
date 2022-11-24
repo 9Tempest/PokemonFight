@@ -334,6 +334,7 @@ void GameWindow::appLogic()
 	}
 	HumanPlayer::get_instance()->get_GameObject()->update();
 	AI::get_instance()->get_GameObject()->update();
+	ParticleAssets::fetch_system("dirt")->update();
 	uploadCommonSceneUniforms();
 	
 	//cout << "frame counter is " << time(NULL) << endl;
@@ -453,11 +454,47 @@ void GameWindow::draw() {
 	}
 	HumanPlayer::get_instance()->get_root_node()->accept(*this);
 	AI::get_instance()->get_root_node()->accept(*this);
+	renderParticles(*ParticleAssets::fetch_system("dirt"));
 	if (m_z_buffer){
 		glDisable( GL_DEPTH_TEST );
 	}
 
 	
+}
+
+static inline mat4 calc_rotation_mat(const vec3& xyz){
+	return glm::rotate(degreesToRadians(xyz.x), vec3(1,0,0)) * glm::rotate(degreesToRadians(xyz.y), vec3(0,1,0)), glm::rotate(degreesToRadians(xyz.z), vec3(0,0,1));
+}
+
+void GameWindow::renderParticles(const ParticleSystem& ps){
+	// Bind the VAO once here, and reuse for all GeometryNode rendering below.
+
+	//assert(ParticleAssets::assets.find(ps.get_name()) != ParticleAssets::assets.end());
+	GeometryNode* geo = ParticleAssets::fetch_mesh(ps.get_name());
+	assert(geo != nullptr);
+	// Bind the VAO once here, and reuse for all GeometryNode rendering below.
+	glBindVertexArray(m_vao_meshData);
+
+	for (auto& p : ps.m_pool){
+		if (p.m_active){
+			//cout << "could not be here" << endl;
+			//cout << "pos is " << p.m_position << endl;
+			geo->trans = glm::translate(p.m_position) * calc_rotation_mat(p.m_rot) * scale(vec3(p.m_size, p.m_size, p.m_size));
+			updateShaderUniforms(m_shader, *geo, m_view);
+
+			// Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
+			BatchInfo batchInfo = m_batchInfoMap[geo->meshId];
+
+			//-- Now render the mesh:
+			m_shader.enable();
+			glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
+			m_shader.disable();
+		}	// if
+	}	// for
+
+	glBindVertexArray(0);
+	CHECK_GL_ERRORS;
+	//cout << "printing geo " << geo->m_name << endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -669,6 +706,12 @@ bool GameWindow::windowResizeEvent (
 	return eventHandled;
 }
 
+
+void static inline emit_dirt_test(){
+	GameObject* snorlaxobj = AI::get_instance()->get_GameObject();
+	dirt_flying_effect(((Snorlax*)snorlaxobj)->get_radius(), snorlaxobj->get_pos());
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles key input events.
@@ -702,6 +745,11 @@ bool GameWindow::keyInputEvent (
 			set_anim_snorlax("snorlax_bodyslam_down");
 			eventHandled = true;
 		}
+		if (key == GLFW_KEY_E){
+			emit_dirt_test();
+			eventHandled = true;
+		}
+		
 
 
 

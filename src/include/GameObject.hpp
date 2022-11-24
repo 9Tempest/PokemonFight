@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory.h>
 #include "Animation.hpp"
-
+#include "particle.hpp"
 class SceneNode;
 class Command;
 class AttackUnit;
@@ -19,6 +19,7 @@ enum class Status{
 
 class GameObject : public Animator{
   protected:
+    //ParticleSystem m_particleSystem;
     std::string m_name;
     glm::vec3 m_pos;
     glm::vec3 m_tmp_pos; // for move interpolation
@@ -75,13 +76,17 @@ class Pikachu: public GameObject{
 
 class Snorlax: public GameObject{
 
+  float m_radius;
+
   public:
-    Snorlax(std::shared_ptr<SceneNode> node): GameObject("Snorlax", 500, node){
+    float get_radius() const { return m_radius; }
+    Snorlax(std::shared_ptr<SceneNode> node): GameObject("Snorlax", 500, node), m_radius(5.0f){
 
     }
     ~Snorlax();
     //void update() override;
     AttackUnit* attack(const std::string& name,  GameObject* target) override;
     void under_attack(AttackUnit* attackUnit) override;
+
 
 };
