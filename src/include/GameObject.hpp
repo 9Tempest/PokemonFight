@@ -33,6 +33,7 @@ class GameObject : public Animator{
     glm::vec3 m_tmp_pos; // for move interpolation
     glm::vec3 m_target_pos;
     Status m_status = Status::Idle;
+    Orientation m_ori = Orientation::Down;
     int m_hp;
     float m_ori_angle = 0.0f;
    
@@ -56,6 +57,23 @@ class GameObject : public Animator{
       m_tmp_pos = m_pos;
     }
     void set_orientation(Orientation o);
+    glm::vec3 get_dir() const{
+      switch (m_ori)
+      {
+      case Orientation::Down:
+        return glm::vec3(0,0,1);
+        break;
+      case Orientation::Right:
+        return glm::vec3(1,0,0);
+      case Orientation::Up:
+        return glm::vec3(0,0,-1);
+        break;
+      case Orientation::Left:
+        return glm::vec3(-1,0,0);
+      default:
+        abort();
+      }
+    }
     int get_hp() const {return m_hp;}
     virtual float get_radius() const{return 0;}
     SceneNode* get_rootNode() const {return m_node.get();}

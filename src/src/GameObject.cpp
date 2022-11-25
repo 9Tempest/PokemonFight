@@ -15,24 +15,25 @@ void GameObject::set_orientation(Orientation o){
       case Orientation::Left:
         angle = -90 - m_ori_angle;
         m_ori_angle = -90;
+        m_ori = Orientation::Left;
         break;
       case Orientation::Right:
         angle = 90 - m_ori_angle;
         m_ori_angle = 90;
+        m_ori = Orientation::Right;
         break;
       case Orientation::Down:
         angle = 0 - m_ori_angle;
         m_ori_angle = 0;
+        m_ori = Orientation::Down;
         break;
       case Orientation::Up:
         angle = 180 - m_ori_angle;
         m_ori_angle = 180;
-      
+        m_ori = Orientation::Up;
       default:
         break;
       }
-      
-
       m_node->rotatelocal('y', angle, m_node->trans);
       
     }
@@ -60,6 +61,15 @@ void GameObject::set_pos(const glm::vec3& pos){
 
 void Pikachu::update(){
 
+    // update attackUnit
+    if (m_attacku != nullptr){
+        m_attacku->update(get_curr_time());
+        if (m_attacku->get_is_done()){
+            delete m_attacku;
+            m_attacku = nullptr;
+        }
+    }
+
     // if done animation, set status to idle
     if (!get_has_anim()){
         m_status = Status::Idle;
@@ -73,6 +83,8 @@ void Pikachu::update(){
    
     // update animator
     Animator::update();
+
+    
 }
 
 void Pikachu::move(float x, float y){
@@ -86,7 +98,8 @@ void Pikachu::attack(const std::string& name, GameObject* target){
     assert(m_status == Status::Idle);
     DLOG("Pikachu %s attack enemy %s", m_name.c_str(), target->get_name().c_str());
     // add details here
-
+    m_status = Status::Attacking;
+    m_attacku = new Discharge(this, target);
     return;
 }
 

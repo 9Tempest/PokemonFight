@@ -11,6 +11,16 @@ yellow2 = gr.material({1.0000000,0.9019608,0.1764706}, {0.0, 0.0, 0.0}, 5)
 rootnode = gr.node('root')
 
 
+lightning = gr.mesh('cube', 'lightning')
+lightning:set_material(white)
+lightning:scale(3.5, 0.5, 0.1)
+lightning:set_particle()
+
+elec = gr.mesh('cube', 'electornics')
+elec:set_material(white)
+elec:scale(0.1, 0.1, 0.01)
+elec:set_particle()
+
 -- construct body
 turso = gr.mesh('mcube', 'turso')
 rootnode:add_child(turso)

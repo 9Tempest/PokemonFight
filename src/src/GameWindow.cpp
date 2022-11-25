@@ -361,6 +361,8 @@ void GameWindow::appLogic()
 	HumanPlayer::get_instance()->get_GameObject()->update();
 	AI::get_instance()->get_GameObject()->update();
 	ParticleAssets::fetch_system("dirt")->update();
+	ParticleAssets::fetch_system("lightning")->update(false);
+	ParticleAssets::fetch_system("electornics")->update(false);
 	processCameraShake();
 	uploadCommonSceneUniforms();
 	m_curr_ts = get_curr_time();
@@ -483,6 +485,8 @@ void GameWindow::draw() {
 	HumanPlayer::get_instance()->get_root_node()->accept(*this, scale(vec3(1.0, 1.0, 1.0)));
 	AI::get_instance()->get_root_node()->accept(*this, scale(vec3(1.0f, 1.0f, 1.0f)));
 	renderParticles(*ParticleAssets::fetch_system("dirt"));
+	renderParticles(*ParticleAssets::fetch_system("lightning"));
+	renderParticles(*ParticleAssets::fetch_system("electornics"));
 	if (m_z_buffer){
 		glDisable( GL_DEPTH_TEST );
 	}
@@ -491,7 +495,7 @@ void GameWindow::draw() {
 }
 
 static inline mat4 calc_rotation_mat(const vec3& xyz){
-	return glm::rotate(degreesToRadians(xyz.x), vec3(1,0,0)) * glm::rotate(degreesToRadians(xyz.y), vec3(0,1,0)), glm::rotate(degreesToRadians(xyz.z), vec3(0,0,1));
+	return glm::rotate(degreesToRadians(xyz.x), vec3(1,0,0)) * glm::rotate(degreesToRadians(xyz.y), vec3(0,1,0)) * glm::rotate(degreesToRadians(xyz.z), vec3(0,0,1));
 }
 
 void GameWindow::renderParticles(const ParticleSystem& ps){
@@ -505,9 +509,7 @@ void GameWindow::renderParticles(const ParticleSystem& ps){
 
 	for (auto& p : ps.m_pool){
 		if (p.m_active){
-			//cout << "could not be here" << endl;
-			//cout << "pos is " << p.m_position << endl;
-			geo->trans = glm::translate(p.m_position) * calc_rotation_mat(p.m_rot) * scale(vec3(p.m_size, p.m_size, p.m_size));
+			geo->trans = glm::translate(p.m_position) * calc_rotation_mat(p.m_rot) * scale(vec3(p.m_size, p.m_size, p.m_size)) * geo->originalM;
 			updateShaderUniforms(m_shader, *geo, m_view);
 
 			// Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
@@ -808,8 +810,10 @@ bool GameWindow::keyInputEvent (
 			set_anim_snorlax("snorlax_bodyslam_down");
 			eventHandled = true;
 		}
-		if (key == GLFW_KEY_E){
-			cameraShake(3.0f);
+		if (key == GLFW_KEY_T){
+			if (is_pikachu_idle()){
+				HumanPlayer::get_instance()->get_GameObject()->attack("discharge", AI::get_instance()->get_GameObject());
+			}
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_B){

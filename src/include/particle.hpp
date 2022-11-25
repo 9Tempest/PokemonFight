@@ -17,6 +17,8 @@ struct ParticleProps{
     glm::vec3 position;
     glm::vec3 vel;
     float lifetime;
+    glm::vec3 m_rot = glm::vec3(0,0,0);
+    float size = 1.0f;
 };
 
 
@@ -29,7 +31,7 @@ class ParticleSystem{
             glm::vec3 m_rot;
             glm::vec3 m_rot_vel;
 
-            float m_size;
+            float m_size = 1.0f;
             
             float m_lifetime = 1.0f;
             float m_life_remaining = 0.0f;
@@ -49,9 +51,12 @@ class ParticleSystem{
         ParticleSystem(){}
         ParticleSystem(const std::string & name);
         ParticleSystem(const ParticleSystem& other);
-        void update();
-        
-        void Emit(const ParticleProps& pp);     
+        void update(bool gravity = true);
+        void clean(){
+            m_pool.clear();
+            m_pool.resize(1000);
+        }
+        void Emit(const ParticleProps& pp, bool is_random = true);     
 };
 
 class ParticleAssets{
@@ -66,5 +71,7 @@ class ParticleAssets{
 };
 
 void dirt_flying_effect(float radius, const glm::vec3& pos);
+
+void lightning_effect(const glm::vec3& pos, const glm::vec3& dir);
 
 #endif
