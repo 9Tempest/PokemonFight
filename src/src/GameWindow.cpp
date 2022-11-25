@@ -414,14 +414,15 @@ void GameWindow::guiLogic()
 static void updateShaderUniforms(
 		const ShaderProgram & shader,
 		const GeometryNode & node,
-		const glm::mat4 & viewMatrix
+		const glm::mat4 & viewMatrix,
+		const glm::mat4 & scale_m = mat4()
 ) {
 
 	shader.enable();
 	{
 		//-- Set ModelView matrix:
 		GLint location = shader.getUniformLocation("ModelView");
-		mat4 modelView = viewMatrix* node.trans;
+		mat4 modelView = viewMatrix * scale_m * node.trans;
 		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(modelView));
 		CHECK_GL_ERRORS;
 
@@ -452,8 +453,8 @@ void GameWindow::draw() {
 	if (m_z_buffer){
 		glEnable( GL_DEPTH_TEST );
 	}
-	HumanPlayer::get_instance()->get_root_node()->accept(*this);
-	AI::get_instance()->get_root_node()->accept(*this);
+	HumanPlayer::get_instance()->get_root_node()->accept(*this, scale(vec3(1.0, 1.0, 1.0)));
+	AI::get_instance()->get_root_node()->accept(*this, scale(vec3(1.0f, 1.0f, 1.0f)));
 	renderParticles(*ParticleAssets::fetch_system("dirt"));
 	if (m_z_buffer){
 		glDisable( GL_DEPTH_TEST );
@@ -498,7 +499,7 @@ void GameWindow::renderParticles(const ParticleSystem& ps){
 }
 
 //----------------------------------------------------------------------------------------
-void GameWindow::renderSceneGraph(const SceneNode & root) {
+void GameWindow::renderSceneGraph(const SceneNode & root, const mat4& scale_m) {
 
 	// Bind the VAO once here, and reuse for all GeometryNode rendering below.
 	glBindVertexArray(m_vao_meshData);
@@ -523,7 +524,7 @@ void GameWindow::renderSceneGraph(const SceneNode & root) {
 
 		const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
 
-		updateShaderUniforms(m_shader, *geometryNode, m_view);
+		updateShaderUniforms(m_shader, *geometryNode, m_view, scale_m);
 
 
 		// Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
@@ -712,6 +713,8 @@ void static inline emit_dirt_test(){
 	dirt_flying_effect(((Snorlax*)snorlaxobj)->get_radius(), snorlaxobj->get_pos());
 }
 
+
+const float STEP_SIZE = 3.0f;
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles key input events.
@@ -732,9 +735,28 @@ bool GameWindow::keyInputEvent (
 			set_anim_pika("pikachu_attack");
 			eventHandled = true;
 		}
+		if (key == GLFW_KEY_S){
+			set_anim_pika("pikachu_move");
+			HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Down);
+			HumanPlayer::get_instance()->get_GameObject()->move(0,STEP_SIZE);
+			eventHandled = true;
+		}
+		if (key == GLFW_KEY_A){
+			set_anim_pika("pikachu_move");
+			HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Left);
+			HumanPlayer::get_instance()->get_GameObject()->move(-STEP_SIZE,0);
+			eventHandled = true;
+		}
+		if (key == GLFW_KEY_D){
+			set_anim_pika("pikachu_move");
+			HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Right);
+			HumanPlayer::get_instance()->get_GameObject()->move(STEP_SIZE,0);
+			eventHandled = true;
+		}
 		if (key == GLFW_KEY_W){
 			set_anim_pika("pikachu_move");
-			HumanPlayer::get_instance()->get_GameObject()->move(2,2);
+			HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Up);
+			HumanPlayer::get_instance()->get_GameObject()->move(0,-STEP_SIZE);
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_O){

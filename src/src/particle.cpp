@@ -91,7 +91,7 @@ void ParticleSystem::Emit(const ParticleProps& pp){
     m_pool_idx = ++m_pool_idx % m_pool.size();
 
 }
-const float PI = 3.141592653589793238;
+
 
 void dirt_flying_effect(float radius, const glm::vec3& pos){
     int num_pts = Random::Int(20,40);

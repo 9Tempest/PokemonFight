@@ -67,7 +67,6 @@ void Animator::body_trans(glm::vec3& curr, const glm::vec3& tmp_curr, const glm:
     mat4 trans = interpolate(T_curr, T_target, progression);
     vec3 offset = vec3(trans[3] ) - curr;
     curr += offset;
-    cout << "offset is " << offset << endl;
     m_node->applyRotTranslTransform(glm::translate(offset));
 }
 

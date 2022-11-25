@@ -17,19 +17,24 @@ enum class Status{
     Dead
 };
 
+enum class Orientation{
+  Left,
+  Right,
+  Up,
+  Down
+};
+
 class GameObject : public Animator{
   
   protected:
     //ParticleSystem m_particleSystem;
     std::string m_name;
-    
-  public:
     glm::vec3 m_pos;
     glm::vec3 m_tmp_pos; // for move interpolation
     glm::vec3 m_target_pos;
-     Status m_status = Status::Idle;
-  protected:
+    Status m_status = Status::Idle;
     int m_hp;
+    float m_ori_angle = 0.0f;
    
     AttackUnit* m_attacku = nullptr;
     friend class AttackUnit;
@@ -42,10 +47,17 @@ class GameObject : public Animator{
     GameObject(std::string name, int hp, std::shared_ptr<SceneNode> node);
     // for debugging purpose
     Status get_status() const {return m_status;}
+    void set_status(Status s){m_status = s;}
     std::string get_name() const {return m_name;}
     glm::vec3 get_pos() const {return m_pos;}
     void set_pos(const glm::vec3& pos);
+    void set_target_pos(const glm::vec3& pos){
+      m_target_pos = pos;
+      m_tmp_pos = m_pos;
+    }
+    void set_orientation(Orientation o);
     int get_hp() const {return m_hp;}
+    virtual float get_radius() const{return 0;}
     SceneNode* get_rootNode() const {return m_node.get();}
 
     virtual void move(float x, float y);
@@ -88,7 +100,7 @@ class Snorlax: public GameObject{
   float m_radius;
 
   public:
-    float get_radius() const { return m_radius; }
+    float get_radius() const override { return m_radius; }
     Snorlax(std::shared_ptr<SceneNode> node): GameObject("Snorlax", 500, node), m_radius(5.0f){
 
     }

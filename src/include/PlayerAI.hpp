@@ -13,7 +13,7 @@ class Player : public Visitor{
         }
 
     public:
-        void visit(SceneNode* node){
+        void visit(SceneNode* node, const glm::mat4& scale_m = glm::mat4()) override{
             m_node_mapping[node->m_name] = node;
             std::cout << node->m_name << " maps to " << node << std::endl;
         }

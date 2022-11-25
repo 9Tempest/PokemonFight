@@ -12,7 +12,7 @@ class SceneNode;
 
 class Visitor{
     public:
-    virtual void visit(SceneNode* node) = 0;
+    virtual void visit(SceneNode* node, const glm::mat4& scale_m = glm::mat4()) = 0;
 };
 
 enum class NodeType {
@@ -90,10 +90,10 @@ public:
 	unsigned int m_nodeId;
 
     // register node
-    virtual void accept(Visitor& p){
-        p.visit(this);
+    virtual void accept(Visitor& p, const glm::mat4& scale_m = glm::mat4()){
+        p.visit(this, scale_m);
         for (auto child : children){
-            child->accept(p);
+            child->accept(p, scale_m);
         }
     }
 

@@ -13,20 +13,18 @@ BodySlam::BodySlam(GameObject*attacker, GameObject*attackee)
         assert(ani_ptr != nullptr);
         assert(m_attacker != nullptr);
         m_attacker->do_animation(*ani_ptr);
-        m_attacker->m_target_pos = vec3(0, SKY_HEIGHT, 0);
-        m_attacker->m_tmp_pos = m_attacker->m_pos;
+        m_attacker->set_target_pos( vec3(m_attacker->get_pos().x, SKY_HEIGHT, m_attacker->get_pos().z));
         m_ts = get_curr_time();
     }
 
 void BodySlam::phase2(){
     vec3 target_pos = vec3(m_target->get_pos().x, SKY_HEIGHT, m_target->get_pos().z);
     m_attacker->set_pos(target_pos);
-    m_attacker->m_target_pos = m_target->get_pos();
-    m_attacker->m_tmp_pos = m_attacker->m_pos;
+    m_attacker->set_target_pos(m_target->get_pos());
     Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("snorlax_bodyslam_down");
     assert(ani_ptr != nullptr);
     m_attacker->do_animation(*ani_ptr);
-    m_attacker->m_status = Status::Attacking;
+    m_attacker->set_status(Status::Attacking);
 }
 
 
@@ -39,6 +37,7 @@ void BodySlam::update(const time_stamp& ts){
     }
 
     if (phase1 && m_attacker->get_pos().y <= 0){
+        dirt_flying_effect(m_attacker->get_radius(), m_attacker->get_pos());
         if (hit()){
             m_target->under_attack(this);
         }

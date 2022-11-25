@@ -7,7 +7,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/ext.hpp>
 #include <glm/gtx/quaternion.hpp>
-
+#include "cs488-framework/MathUtils.hpp"
 
 
 #define GROUND -5

@@ -7,6 +7,36 @@
 using namespace std;
 using namespace glm;
 
+void GameObject::set_orientation(Orientation o){
+      glm::vec3 axis = glm::vec3(0,1,0);
+      float angle = 0;
+      switch (o)
+      {
+      case Orientation::Left:
+        angle = -90 - m_ori_angle;
+        m_ori_angle = -90;
+        break;
+      case Orientation::Right:
+        angle = 90 - m_ori_angle;
+        m_ori_angle = 90;
+        break;
+      case Orientation::Down:
+        angle = 0 - m_ori_angle;
+        m_ori_angle = 0;
+        break;
+      case Orientation::Up:
+        angle = 180 - m_ori_angle;
+        m_ori_angle = 180;
+      
+      default:
+        break;
+      }
+      
+
+      m_node->rotatelocal('y', angle, m_node->trans);
+      
+    }
+
 GameObject::GameObject(std::string name, int hp, shared_ptr<SceneNode> node): Animator(node), m_name(name), m_hp(hp), m_status(Status::Idle){
     m_pos = vec3(m_node->trans[3]);
     m_target_pos = m_pos;

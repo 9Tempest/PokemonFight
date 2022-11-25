@@ -63,7 +63,7 @@ protected:
 
 	void initPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
-	void renderSceneGraph(const SceneNode &node);
+	void renderSceneGraph(const SceneNode &node , const glm::mat4& scale_m = glm::mat4());
 	void renderParticles(const ParticleSystem& ps);
 
 	void processPicking();
@@ -111,8 +111,8 @@ protected:
 
 
 	// recursive render
-	virtual void visit(SceneNode* node) override{
-		renderSceneGraph(*node);
+	virtual void visit(SceneNode* node, const glm::mat4& scale_m = glm::mat4()) override{
+		renderSceneGraph(*node, scale_m);
 	}
 
 	std::unordered_map<JointNode*, std::pair<float, float>> selected_joints;
