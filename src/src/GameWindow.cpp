@@ -13,11 +13,17 @@ using namespace std;
 #include "include.hpp"
 #include "PlayerAI.hpp"
 #include "GameObject.hpp"
+#include "random.hpp"
 using namespace glm;
 using namespace std;
 static bool show_gui = true;
 
-
+mat4 GameWindow::m_view;
+mat4 GameWindow::m_view_original;
+float GameWindow::m_shake_remaining_time = 0.0f;
+float GameWindow::m_shake_time = 0.0f;
+float GameWindow::m_shake_remaining_force = 0.0f;
+float GameWindow::m_shake_force = 0.0f;
 //----------------------------------------------------------------------------------------
 // Constructor
 GameWindow::GameWindow(const vector<string> & luaSceneFile)
@@ -122,6 +128,7 @@ void GameWindow::init()
 
 	initLightSources();
 
+	m_curr_ts = get_curr_time();
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
 	// all vertex data resources.  This is fine since we already copied this data to
 	// VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
@@ -313,6 +320,25 @@ void GameWindow::uploadCommonSceneUniforms() {
 	m_shader.disable();
 }
 
+
+
+void GameWindow::processCameraShake(){
+	if (m_shake_remaining_time <= 0.0f) return;
+	float time_diff = get_time_diff(m_curr_ts, get_curr_time());
+	m_shake_remaining_time -= time_diff;
+	
+	
+	// if end, recovery m_view
+	if (m_shake_remaining_time <= 0.0f){
+		m_shake_remaining_time = 0.0f;
+		m_view = m_view_original;
+	}
+	m_shake_remaining_force = m_shake_force * (m_shake_remaining_time / m_shake_time);
+	vec3 transl = m_shake_remaining_force * vec3(Random::Float(), Random::Float(), Random::Float());
+	m_view =  glm::translate(transl) * m_view_original;
+
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once per frame, before guiLogic().
@@ -335,8 +361,9 @@ void GameWindow::appLogic()
 	HumanPlayer::get_instance()->get_GameObject()->update();
 	AI::get_instance()->get_GameObject()->update();
 	ParticleAssets::fetch_system("dirt")->update();
+	processCameraShake();
 	uploadCommonSceneUniforms();
-	
+	m_curr_ts = get_curr_time();
 	//cout << "frame counter is " << time(NULL) << endl;
 }
 
@@ -715,6 +742,11 @@ void static inline emit_dirt_test(){
 
 
 const float STEP_SIZE = 3.0f;
+
+static inline bool is_pikachu_idle(){
+	return HumanPlayer::get_instance()->get_GameObject()->get_status() == Status::Idle;
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Event handler.  Handles key input events.
@@ -736,27 +768,36 @@ bool GameWindow::keyInputEvent (
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_S){
-			set_anim_pika("pikachu_move");
-			HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Down);
-			HumanPlayer::get_instance()->get_GameObject()->move(0,STEP_SIZE);
+			if (is_pikachu_idle()){
+				set_anim_pika("pikachu_move");
+				HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Down);
+				HumanPlayer::get_instance()->get_GameObject()->move(0,STEP_SIZE);
+			}
+			
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_A){
-			set_anim_pika("pikachu_move");
-			HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Left);
-			HumanPlayer::get_instance()->get_GameObject()->move(-STEP_SIZE,0);
+			if (is_pikachu_idle()){
+				set_anim_pika("pikachu_move");
+				HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Left);
+				HumanPlayer::get_instance()->get_GameObject()->move(-STEP_SIZE,0);
+			}
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_D){
-			set_anim_pika("pikachu_move");
-			HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Right);
-			HumanPlayer::get_instance()->get_GameObject()->move(STEP_SIZE,0);
+			if (is_pikachu_idle()){
+				set_anim_pika("pikachu_move");
+				HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Right);
+				HumanPlayer::get_instance()->get_GameObject()->move(STEP_SIZE,0);
+			}
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_W){
-			set_anim_pika("pikachu_move");
-			HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Up);
-			HumanPlayer::get_instance()->get_GameObject()->move(0,-STEP_SIZE);
+			if (is_pikachu_idle()){
+				set_anim_pika("pikachu_move");
+				HumanPlayer::get_instance()->get_GameObject()->set_orientation(Orientation::Up);
+				HumanPlayer::get_instance()->get_GameObject()->move(0,-STEP_SIZE);
+			}
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_O){
@@ -768,7 +809,7 @@ bool GameWindow::keyInputEvent (
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_E){
-			emit_dirt_test();
+			cameraShake(3.0f);
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_B){

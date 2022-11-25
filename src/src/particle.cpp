@@ -94,7 +94,7 @@ void ParticleSystem::Emit(const ParticleProps& pp){
 
 
 void dirt_flying_effect(float radius, const glm::vec3& pos){
-    int num_pts = Random::Int(20,40);
+    int num_pts = Random::Int(30,50);
     radius *= 1.5;
     float k = 2 * PI / float(num_pts);
     for(int i_phi = 0; i_phi < num_pts; ++i_phi){
@@ -103,7 +103,7 @@ void dirt_flying_effect(float radius, const glm::vec3& pos){
         float positionZ = radius * sin( phi );
         vec3 ppos = vec3(positionX+pos.x, GROUND, positionZ+pos.z);
         vec3 vel = normalize(ppos - pos) + vec3(0, 8, 0);
-        ParticleProps pps{ppos, vel, 2.0f};
+        ParticleProps pps{ppos, vel, 3.0f};
         ParticleAssets::fetch_system("dirt")->Emit(pps);
     }
 }

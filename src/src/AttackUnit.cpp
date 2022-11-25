@@ -1,7 +1,7 @@
 #include "AttackUnit.hpp"
 #include "GameObject.hpp"
 #include <include.hpp>
-
+#include "GameWindow.hpp"
 using namespace std;
 using namespace glm;
 
@@ -38,6 +38,7 @@ void BodySlam::update(const time_stamp& ts){
 
     if (phase1 && m_attacker->get_pos().y <= 0){
         dirt_flying_effect(m_attacker->get_radius(), m_attacker->get_pos());
+        GameWindow::cameraShake(2.0f);
         if (hit()){
             m_target->under_attack(this);
         }

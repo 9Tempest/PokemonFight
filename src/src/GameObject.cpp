@@ -45,6 +45,7 @@ GameObject::GameObject(std::string name, int hp, shared_ptr<SceneNode> node): An
 void GameObject::move(float x, float z){
     DLOG("Object %s move x:%f z:%f", m_name.c_str(), x, z);
     assert(m_status == Status::Idle);
+    m_status = Status::Moving;
     m_target_pos = m_pos +  vec3(x, 0, z);
     m_tmp_pos = m_pos;
 }
@@ -66,7 +67,10 @@ void Pikachu::update(){
     }
 
     // move to target position
-    body_trans(m_pos, m_tmp_pos, m_target_pos);
+    if (m_status == Status::Moving){
+         body_trans(m_pos, m_tmp_pos, m_target_pos);
+    }
+   
     // update animator
     Animator::update();
 }
@@ -102,7 +106,7 @@ void Snorlax::attack(const std::string& name, GameObject* target){
     assert(m_status == Status::Idle);
     DLOG("Snorlax %s attack enemy %s", m_name.c_str(), target->get_name().c_str());
     // add details here
-    m_status == Status::Attacking;
+    m_status = Status::Attacking;
     m_attacku = new BodySlam(this, HumanPlayer::get_instance()->get_GameObject());
     return;
 }

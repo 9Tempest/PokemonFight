@@ -123,7 +123,6 @@ void Animator::do_animation( const Animation& anim){
     m_curr_anim.m_name = anim.m_name;
     m_curr_anim.m_end_stamp = anim.m_end_stamp;
     m_curr_anim.m_curr_frame_idx = 0;
-    cout << "curr anim is " << m_curr_anim << endl;
     m_curr_ts = get_curr_time();
     m_has_anim = true;
 }

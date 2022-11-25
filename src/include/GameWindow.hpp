@@ -25,11 +25,21 @@ struct LightSource {
 	glm::vec3 rgbIntensity;
 };
 
+const float SHAKE_STRENGTH = 2.0f;
 
 class GameWindow : public CS488Window, public Visitor {
 public:
 	GameWindow(const std::vector<std::string> & luaSceneFiles);
 	virtual ~GameWindow();
+	// camera shake
+	static void cameraShake(float duration, float force = SHAKE_STRENGTH){
+		m_view_original = m_view;
+		m_shake_time = duration;
+		m_shake_remaining_time = duration;
+		m_shake_force = force;
+		m_shake_remaining_force = force;
+		std::cout << "start shaking" << std::endl;
+	}
 
 protected:
 	virtual void init() override;
@@ -66,10 +76,15 @@ protected:
 	void renderSceneGraph(const SceneNode &node , const glm::mat4& scale_m = glm::mat4());
 	void renderParticles(const ParticleSystem& ps);
 
-	void processPicking();
+	void processCameraShake();
 
 	glm::mat4 m_perpsective;
-	glm::mat4 m_view;
+	static glm::mat4 m_view;
+	static glm::mat4 m_view_original;
+	static float m_shake_time;
+	static float m_shake_remaining_time;
+	static float m_shake_force;
+	static float m_shake_remaining_force;
 
 	LightSource m_light;
 
@@ -100,6 +115,7 @@ protected:
 	bool m_left_click = false;
 	bool m_middle_click = false;
 	bool m_right_click = false;
+	time_stamp m_curr_ts;
 
 	float m_prev_x;
 	float m_prev_y;
