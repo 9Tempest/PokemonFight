@@ -2,6 +2,7 @@
 #include "SceneNode.hpp"
 #include "include.hpp"
 #include "debug.hpp"
+#include "PlayerAI.hpp"
 
 using namespace std;
 using namespace glm;
@@ -17,6 +18,12 @@ void GameObject::move(float x, float z){
     m_target_pos = m_pos +  vec3(x, 0, z);
     m_tmp_pos = m_pos;
 }
+
+void GameObject::set_pos(const glm::vec3& pos){
+      vec3 offset = pos - m_pos;
+      m_pos = pos;
+      m_node->applyRotTranslTransform(glm::translate(offset));
+    }
 
 // ------------- Pikachu logics ------------
 
@@ -41,12 +48,12 @@ void Pikachu::move(float x, float y){
     do_animation(*ani_ptr);
 }
 
-AttackUnit* Pikachu::attack(const std::string& name, GameObject* target){
+void Pikachu::attack(const std::string& name, GameObject* target){
     assert(m_status == Status::Idle);
     DLOG("Pikachu %s attack enemy %s", m_name.c_str(), target->get_name().c_str());
     // add details here
 
-    return nullptr;
+    return;
 }
 
 void Pikachu::under_attack(AttackUnit* attackUnit){
@@ -61,12 +68,13 @@ Pikachu::~Pikachu(){
 
 // ------------- Snorlax logics ------------
 
-AttackUnit* Snorlax::attack(const std::string& name, GameObject* target){
+void Snorlax::attack(const std::string& name, GameObject* target){
     assert(m_status == Status::Idle);
     DLOG("Snorlax %s attack enemy %s", m_name.c_str(), target->get_name().c_str());
     // add details here
-
-    return nullptr;
+    m_status == Status::Attacking;
+    m_attacku = new BodySlam(this, HumanPlayer::get_instance()->get_GameObject());
+    return;
 }
 
 void Snorlax::under_attack(AttackUnit* attackUnit){
@@ -76,4 +84,33 @@ void Snorlax::under_attack(AttackUnit* attackUnit){
 
 Snorlax::~Snorlax(){
     
+}
+
+void Snorlax::update(){
+    
+
+
+    if (!get_has_anim() && m_attacku == nullptr){
+        m_status = Status::Idle;
+        return;
+    }
+
+    // if done animation, set status to idle
+    if (!get_has_anim() && m_attacku != nullptr){
+        ((BodySlam*)m_attacku)->is_touch_sky = true;
+    }
+    
+    // move to target position
+    body_trans(m_pos, m_tmp_pos, m_target_pos);
+    // update animator
+    Animator::update();
+
+    // update attackUnit
+    if (m_attacku != nullptr){
+        m_attacku->update(get_curr_time());
+        if (m_attacku->get_is_done()){
+            delete m_attacku;
+            m_attacku = nullptr;
+        }
+    }
 }

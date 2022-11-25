@@ -749,6 +749,9 @@ bool GameWindow::keyInputEvent (
 			emit_dirt_test();
 			eventHandled = true;
 		}
+		if (key == GLFW_KEY_B){
+			AI::get_instance()->get_GameObject()->attack("BodySlam", HumanPlayer::get_instance()->get_GameObject());
+		}
 		
 
 

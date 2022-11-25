@@ -60,7 +60,7 @@ void ParticleSystem::update(){
     //cout << "time diff is " << time_diff << endl;
     for (auto& p : m_pool){
         if (p.m_active){
-            p.update_on(time_diff, gravity);
+            p.update_on(time_diff, GRAVITY);
             // .. update
         }   // if
     }   // for
@@ -77,7 +77,7 @@ void ParticleSystem::Emit(const ParticleProps& pp){
     particle.m_position = pp.position;
     particle.m_lifetime = pp.lifetime;
     // size
-    particle.m_size = Random::FloatPositive() * 3;
+    particle.m_size = Random::FloatPositive() * 2;
     // velocity
     particle.m_vel = pp.vel;
     particle.m_vel.x += Random::Float();

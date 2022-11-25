@@ -11,3 +11,5 @@
 
 
 #define GROUND -5
+#define GRAVITY 9.8f
+

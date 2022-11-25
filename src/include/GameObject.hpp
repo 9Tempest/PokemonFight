@@ -4,9 +4,9 @@
 #include <memory.h>
 #include "Animation.hpp"
 #include "particle.hpp"
+#include "AttackUnit.hpp"
 class SceneNode;
 class Command;
-class AttackUnit;
 
 enum class Status{
     Moving,
@@ -18,15 +18,22 @@ enum class Status{
 };
 
 class GameObject : public Animator{
+  
   protected:
     //ParticleSystem m_particleSystem;
     std::string m_name;
+    
+  public:
     glm::vec3 m_pos;
     glm::vec3 m_tmp_pos; // for move interpolation
     glm::vec3 m_target_pos;
+     Status m_status = Status::Idle;
+  protected:
     int m_hp;
-    Status m_status = Status::Idle;
-
+   
+    AttackUnit* m_attacku = nullptr;
+    friend class AttackUnit;
+    
   public:
     virtual ~GameObject(){}
     // GameObject(std::string name, int hp, SceneNode* node):m_name(name), m_hp(hp), m_node(node){
@@ -34,8 +41,10 @@ class GameObject : public Animator{
     // }
     GameObject(std::string name, int hp, std::shared_ptr<SceneNode> node);
     // for debugging purpose
+    Status get_status() const {return m_status;}
     std::string get_name() const {return m_name;}
     glm::vec3 get_pos() const {return m_pos;}
+    void set_pos(const glm::vec3& pos);
     int get_hp() const {return m_hp;}
     SceneNode* get_rootNode() const {return m_node.get();}
 
@@ -55,7 +64,7 @@ class GameObject : public Animator{
               delete attackUnit;
 
     */
-    virtual AttackUnit* attack(const std::string& name, GameObject* target) = 0;
+    virtual void attack(const std::string& name, GameObject* target) = 0;
     virtual void under_attack(AttackUnit* attackUnit) = 0;
 
 };
@@ -69,7 +78,7 @@ class Pikachu: public GameObject{
     ~Pikachu();
     void update() override;
     void move(float x, float y) override;
-    AttackUnit* attack(const std::string& name,  GameObject* target) override;
+    void attack(const std::string& name,  GameObject* target) override;
     void under_attack(AttackUnit* attackUnit) override;
 
 };
@@ -84,8 +93,8 @@ class Snorlax: public GameObject{
 
     }
     ~Snorlax();
-    //void update() override;
-    AttackUnit* attack(const std::string& name,  GameObject* target) override;
+    void update() override;
+    void attack(const std::string& name,  GameObject* target) override;
     void under_attack(AttackUnit* attackUnit) override;
 
 

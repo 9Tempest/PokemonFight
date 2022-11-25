@@ -20,8 +20,6 @@ struct ParticleProps{
 };
 
 
-const float gravity = 9.8f;
-
 class ParticleSystem{
 
     private:
