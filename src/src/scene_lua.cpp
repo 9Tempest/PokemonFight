@@ -47,6 +47,7 @@
 #include "GeometryNode.hpp"
 #include "particle.hpp"
 #include <iostream>
+#include "texture.hpp"
 using namespace std;
 // Uncomment the following line to enable debugging messages
 //#define GRLUA_ENABLE_DEBUG
@@ -84,6 +85,16 @@ struct gr_material_ud {
   Material* material;
 };
 
+// User data for texture
+struct gr_texture_ud {
+	Texture* texture;
+};
+
+// User data for skybox
+struct gr_skybox_ud {
+	SkyBox* texture;
+};
+
 
 
 // Create a node
@@ -103,6 +114,49 @@ int gr_node_cmd(lua_State* L)
 
   return 1;
 }
+
+// Import png
+extern "C"
+int gr_import_texture_cmd(lua_State * L)
+{
+	GRLUA_DEBUG_CALL;
+
+	gr_texture_ud* data = (gr_texture_ud*)lua_newuserdata(L, sizeof(gr_texture_ud));
+	data->texture = 0;
+
+	const char* texturePath = luaL_checkstring(L, 1);
+	data->texture = new Texture(texturePath);
+
+	luaL_newmetatable(L, "gr.texture");
+	lua_setmetatable(L, -2);
+
+	return 1;
+}
+
+
+SkyBox* m_skybox = nullptr;
+
+// Set skybox
+extern "C"
+int gr_set_skybox_cmd(lua_State * L)
+{
+	GRLUA_DEBUG_CALL;
+  cout << "here" << endl;
+	// get texture
+	gr_skybox_ud* data = (gr_skybox_ud*)lua_newuserdata(L, sizeof(gr_skybox_ud));
+  data->texture = 0;
+	const char* texturePath = luaL_checkstring(L, 1);
+	data->texture = new SkyBox({texturePath, texturePath, texturePath, texturePath, texturePath, texturePath});
+
+  m_skybox = data->texture;
+  luaL_newmetatable(L, "gr.skybox");
+	lua_setmetatable(L, -2);
+
+   cout << "here2" << endl;
+
+	return 1;
+}
+
 
 // Create a joint node
 extern "C"
@@ -389,6 +443,8 @@ static const luaL_Reg grlib_functions[] = {
   {"joint", gr_joint_cmd},
   {"mesh", gr_mesh_cmd},
   {"material", gr_material_cmd},
+  {"texture", gr_import_texture_cmd},
+	{"skybox", gr_set_skybox_cmd},
   {0, 0}
 };
 
@@ -472,4 +528,11 @@ SceneNode* import_lua(const std::string& filename)
 
   // And return the node
   return node;
+}
+
+SceneNode * import_lua(const std::string & filename, SkyBox*& skybox_ptr){
+  SceneNode* res_node = import_lua(filename);
+  assert(m_skybox != nullptr);
+  skybox_ptr = m_skybox;
+  return res_node;
 }

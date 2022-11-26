@@ -35,7 +35,8 @@ GameWindow::GameWindow(const vector<string> & luaSceneFile)
 	  m_vbo_vertexNormals(0),
 	  m_z_buffer(true),
 	  m_backface(true),
-	  m_frontface(false)
+	  m_frontface(false),
+	  m_vao_skybox(0)
 {
 
 }
@@ -78,6 +79,18 @@ static void set_anim_snorlax(const string& name){
 	AI::get_instance()->get_GameObject()->do_animation( *ani_ptr);
 }
 
+void GameWindow::init_skybox_vao(){
+	glGenVertexArrays(1, &m_vao_skybox);
+    glGenBuffers(1, &m_vbo_skybox);
+    glBindVertexArray(m_vao_skybox);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo_skybox);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glBindVertexArray(0);
+	CHECK_GL_ERRORS;
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once, at program start.
@@ -92,6 +105,7 @@ void GameWindow::init()
 	glGenVertexArrays(1, &m_vao_meshData);
 	enableVertexShaderInputSlots();
 
+	init_skybox_vao();
 	// set up node for ai and HumanPlayer
 	setup_player_AI();
 
@@ -133,6 +147,9 @@ void GameWindow::init()
 	// all vertex data resources.  This is fine since we already copied this data to
 	// VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
 	// this point.
+
+	// init skybox
+	m_skybox->initialize();
 }
 
 void GameWindow::setup_player_AI(){
@@ -141,9 +158,30 @@ void GameWindow::setup_player_AI(){
 	// load HumanPlayer : Pikachu
 	auto pikachu_rootNode = processLuaSceneFile(m_luaSceneFile[0]);
 	HumanPlayer::get_instance()->set_GameObject(new Pikachu(pikachu_rootNode));
-	// TODO: load Snorlax
-	// load HumanPlayer : Pikachu
+	// TODO: load skybox
+	auto scene_node = processLuaSceneFileAndLoadSkyBox(m_luaSceneFile[2]);
 	
+}
+
+std::shared_ptr<SceneNode> GameWindow::processLuaSceneFileAndLoadSkyBox(const std::string & filename){
+	// This version of the code treats the Lua file as an Asset,
+	// so that you'd launch the program with just the filename
+	// of a puppet in the Assets/ directory.
+	// This version of the code treats the main program argument
+	// as a straightforward pathname.
+	auto rootNode = std::shared_ptr<SceneNode>(import_lua(filename, m_skybox));
+	if (!rootNode) {
+		std::cerr << "Could Not Open " << filename << std::endl;
+	}
+	if (!m_skybox){
+		std::cerr << "Skybox loaded failed! " << std::endl;
+	}
+	// build parent hierarchy
+	rootNode->add_parent();
+	// init joint initial angle
+	rootNode->init_joint_angle(true);
+	rootNode->parent = nullptr;
+	return rootNode;
 }
 
 //----------------------------------------------------------------------------------------
@@ -151,9 +189,6 @@ std::shared_ptr<SceneNode> GameWindow::processLuaSceneFile(const std::string & f
 	// This version of the code treats the Lua file as an Asset,
 	// so that you'd launch the program with just the filename
 	// of a puppet in the Assets/ directory.
-	// std::string assetFilePath = getAssetFilePath(filename.c_str());
-	// HumanPlayer::get_instance()->get_root_node() = std::shared_ptr<SceneNode>(import_lua(assetFilePath));
-
 	// This version of the code treats the main program argument
 	// as a straightforward pathname.
 	auto rootNode = std::shared_ptr<SceneNode>(import_lua(filename));
@@ -177,10 +212,10 @@ void GameWindow::createShaderProgram()
 	m_shader.attachFragmentShader( getAssetFilePath("Phong.fs").c_str() );
 	m_shader.link();
 
-	// m_shader_arcCircle.generateProgramObject();
-	// m_shader_arcCircle.attachVertexShader( getAssetFilePath("arc_VertexShader.vs").c_str() );
-	// m_shader_arcCircle.attachFragmentShader( getAssetFilePath("arc_FragmentShader.fs").c_str() );
-	// m_shader_arcCircle.link();
+	m_shader_skybox.generateProgramObject();
+	m_shader_skybox.attachVertexShader( getAssetFilePath("skybox.vs").c_str() );
+	m_shader_skybox.attachFragmentShader( getAssetFilePath("skybox.fs").c_str() );
+	m_shader_skybox.link();
 }
 
 //----------------------------------------------------------------------------------------
@@ -479,23 +514,60 @@ static void updateShaderUniforms(
  */
 void GameWindow::draw() {
 
-	if (m_z_buffer){
-		glEnable( GL_DEPTH_TEST );
-	}
+
+	glEnable( GL_DEPTH_TEST );
 	HumanPlayer::get_instance()->get_root_node()->accept(*this, scale(vec3(1.0, 1.0, 1.0)));
 	AI::get_instance()->get_root_node()->accept(*this, scale(vec3(1.0f, 1.0f, 1.0f)));
 	renderParticles(*ParticleAssets::fetch_system("dirt"));
 	renderParticles(*ParticleAssets::fetch_system("lightning"));
 	renderParticles(*ParticleAssets::fetch_system("electornics"));
-	if (m_z_buffer){
-		glDisable( GL_DEPTH_TEST );
-	}
+	renderSkyBox();
+	glDisable( GL_DEPTH_TEST );
 
 	
 }
 
 static inline mat4 calc_rotation_mat(const vec3& xyz){
 	return glm::rotate(degreesToRadians(xyz.x), vec3(1,0,0)) * glm::rotate(degreesToRadians(xyz.y), vec3(0,1,0)) * glm::rotate(degreesToRadians(xyz.z), vec3(0,0,1));
+}
+
+void GameWindow::renderSkyBox(){
+	glDepthMask(GL_FALSE);
+	//glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+	assert(m_skybox != nullptr);
+	// bind vao
+	glBindVertexArray(m_vao_skybox);
+	// bind texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, m_skybox->texturePtr);
+	CHECK_GL_ERRORS;
+	m_shader_skybox.enable();
+	{
+		//-- Set ModelView matrix:
+		GLint location = m_shader_skybox.getUniformLocation("View");
+		mat4 View = mat4(mat3(m_view));
+		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(View));
+		CHECK_GL_ERRORS;
+
+		//-- Set Perspective:
+		location = m_shader_skybox.getUniformLocation("Perspective");
+		mat4 persp = m_perpsective;
+		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(persp));
+		CHECK_GL_ERRORS;
+
+		//-- Set sampler:
+		location = m_shader_skybox.getUniformLocation("skybox");
+		glUniform1i(location, 0);
+		CHECK_GL_ERRORS;
+
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
+
+	m_shader_skybox.disable();
+	//glDepthFunc(GL_LESS); // set depth function back to default
+	glDepthMask(GL_TRUE);
+	glBindVertexArray(0);
+	CHECK_GL_ERRORS;
 }
 
 void GameWindow::renderParticles(const ParticleSystem& ps){

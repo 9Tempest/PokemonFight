@@ -13,6 +13,7 @@
 #include "JointNode.hpp"
 #include "particle.hpp"
 #include <iostream>
+#include "texture.hpp"
 enum OptionModel {
 	ModelPosition,
 	ModelJoints,
@@ -63,6 +64,7 @@ protected:
 
 	//-- One time initialization methods:
 	std::shared_ptr<SceneNode> processLuaSceneFile(const std::string & filename);
+	std::shared_ptr<SceneNode> processLuaSceneFileAndLoadSkyBox(const std::string & filename);
 	void setup_player_AI();
 	void createShaderProgram();
 	void enableVertexShaderInputSlots();
@@ -70,11 +72,12 @@ protected:
 	void mapVboDataToVertexShaderInputLocations();
 	void initViewMatrix();
 	void initLightSources();
-
+	void init_skybox_vao();
 	void initPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
 	void renderSceneGraph(const SceneNode &node , const glm::mat4& scale_m = glm::mat4());
 	void renderParticles(const ParticleSystem& ps);
+	void renderSkyBox();
 
 	void processCameraShake();
 
@@ -95,6 +98,12 @@ protected:
 	GLint m_positionAttribLocation;
 	GLint m_normalAttribLocation;
 	ShaderProgram m_shader;
+	ShaderProgram m_shader_skybox;
+
+	// skybox
+	GLuint m_vao_skybox;
+	GLuint m_vbo_skybox;
+	SkyBox* m_skybox = nullptr;
 
 	// BatchInfoMap is an associative container that maps a unique MeshId to a BatchInfo
 	// object. Each BatchInfo object contains an index offset and the number of indices
@@ -146,3 +155,49 @@ protected:
 
 	
 };
+
+
+const float skyboxVertices[] = {
+        // positions          
+        -100.0f,  100.0f, -100.0f,
+        -100.0f, -100.0f, -100.0f,
+         100.0f, -100.0f, -100.0f,
+         100.0f, -100.0f, -100.0f,
+         100.0f,  100.0f, -100.0f,
+        -100.0f,  100.0f, -100.0f,
+
+        -100.0f, -100.0f,  100.0f,
+        -100.0f, -100.0f, -100.0f,
+        -100.0f,  100.0f, -100.0f,
+        -100.0f,  100.0f, -100.0f,
+        -100.0f,  100.0f,  100.0f,
+        -100.0f, -100.0f,  100.0f,
+
+         100.0f, -100.0f, -100.0f,
+         100.0f, -100.0f,  100.0f,
+         100.0f,  100.0f,  100.0f,
+         100.0f,  100.0f,  100.0f,
+         100.0f,  100.0f, -100.0f,
+         100.0f, -100.0f, -100.0f,
+
+        -100.0f, -100.0f,  100.0f,
+        -100.0f,  100.0f,  100.0f,
+         100.0f,  100.0f,  100.0f,
+         100.0f,  100.0f,  100.0f,
+         100.0f, -100.0f,  100.0f,
+        -100.0f, -100.0f,  100.0f,
+
+        -100.0f,  100.0f, -100.0f,
+         100.0f,  100.0f, -100.0f,
+         100.0f,  100.0f,  100.0f,
+         100.0f,  100.0f,  100.0f,
+        -100.0f,  100.0f,  100.0f,
+        -100.0f,  100.0f, -100.0f,
+
+        -100.0f, -100.0f, -100.0f,
+        -100.0f, -100.0f,  100.0f,
+         100.0f, -100.0f, -100.0f,
+         100.0f, -100.0f, -100.0f,
+        -100.0f, -100.0f,  100.0f,
+         100.0f, -100.0f,  100.0f
+    };

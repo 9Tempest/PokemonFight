@@ -13,7 +13,7 @@ rootnode = gr.node('root')
 
 lightning = gr.mesh('cube', 'lightning')
 lightning:set_material(white)
-lightning:scale(3.5, 0.5, 0.1)
+lightning:scale(3.5, 0.5, 0.5)
 lightning:set_particle()
 
 elec = gr.mesh('cube', 'electornics')
