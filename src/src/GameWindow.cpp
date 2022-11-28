@@ -64,7 +64,7 @@ void GameWindow::resetRotation(){
 // Destructor
 GameWindow::~GameWindow()
 {
-
+	delete m_scene;
 }
 
 static void set_anim_pika(const string& name){
@@ -126,6 +126,7 @@ void GameWindow::init()
 			getAssetFilePath("curve.obj"),
 			getAssetFilePath("surtorus.obj"),
 			getAssetFilePath("cube_text.obj"),
+			getAssetFilePath("plane_text.obj"),
 	});
 
 
@@ -164,7 +165,7 @@ void GameWindow::setup_player_AI(){
 	HumanPlayer::get_instance()->set_GameObject(new Pikachu(pikachu_rootNode));
 	// TODO: load skybox
 	auto scene_node = processLuaSceneFileAndLoadSkyBox(m_luaSceneFile[2]);
-	
+	m_scene = new Scene(scene_node);
 }
 
 std::shared_ptr<SceneNode> GameWindow::processLuaSceneFileAndLoadSkyBox(const std::string & filename){
@@ -339,7 +340,7 @@ void GameWindow::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void GameWindow::initLightSources() {
 	// World-space position
-	m_light.position = vec3(10.0f, 10.0f, 10.0f);
+	m_light.position = vec3(0.0f, 10.0f, 0.0f);
 	m_light.rgbIntensity = vec3(1.0f,1.0f, 1.0f); // light
 }
 
@@ -365,7 +366,7 @@ void GameWindow::uploadCommonSceneUniforms() {
 		//-- Set background light ambient intensity
 		{
 			location = m_shader.getUniformLocation("ambientIntensity");
-			vec3 ambientIntensity(0.25f);
+			vec3 ambientIntensity(0.3f);
 			glUniform3fv(location, 1, value_ptr(ambientIntensity));
 			CHECK_GL_ERRORS;
 		}
@@ -565,6 +566,7 @@ void GameWindow::draw() {
 	renderParticles(*ParticleAssets::fetch_system("dirt"));
 	renderParticles(*ParticleAssets::fetch_system("lightning"));
 	renderParticles(*ParticleAssets::fetch_system("electornics"));
+	m_scene->render(*this);
 	renderSkyBox();
 	glDisable( GL_DEPTH_TEST );
 
@@ -710,119 +712,6 @@ bool GameWindow::cursorEnterWindowEvent (
 	return eventHandled;
 }
 
-void GameWindow::rotate_all_selected_joints(double xAngle, double yAngle){
-	for (auto& n : selected_joints){
-		//std::cout << " node is " << *n.first << std::endl;
-		n.first->rotate_joint(xAngle*20, yAngle*20);
-	}
-	//std::cout << "done one " << std::endl;
-}
-//----------------------------------------------------------------------------------------
-/*
- * Event handler.  Handles mouse cursor movement events.
- */
-bool GameWindow::mouseMoveEvent (
-		double xPos,
-		double yPos
-) {
-	bool eventHandled(false);
-
-	if (!ImGui::IsMouseHoveringAnyWindow()) {
-		if(m_left_click || m_middle_click || m_right_click){
-			double x_diff = (xPos - m_prev_x)/POS_SCALE;
-			double y_diff = (yPos - m_prev_y)/POS_SCALE;
-			switch (m_option_model)
-			{
-			case ModelPosition:
-				if (m_left_click){
-					HumanPlayer::get_instance()->get_root_node()->applyTranslate(vec3(x_diff, -y_diff, 0));
-				}	 
-				if (m_middle_click){
-					HumanPlayer::get_instance()->get_root_node()->applyTranslate(vec3(0, 0, y_diff));
-				}
-				if (m_right_click){
-				}
-				break;
-			case ModelJoints:
-				if (m_middle_click){
-					rotate_all_selected_joints(y_diff, y_diff);
-				}
-				if (m_right_click){
-					if (m_headNode) m_headNode->rotate_joint(y_diff*20, y_diff*20);
-				}
-				break;
-			default:
-				abort();
-			}
-		}
-		// update prev x
-		m_prev_x = xPos;
-		m_prev_y = yPos;
-	}
-
-	return eventHandled;
-}
-
-
-//----------------------------------------------------------------------------------------
-/*
- * Event handler.  Handles mouse button events.
- */
-bool GameWindow::mouseButtonInputEvent (
-		int button,
-		int actions,
-		int mods
-) {
-	bool eventHandled(false);
-	bool middle_press, right_press;
-	middle_press = right_press = false;
-	if (!ImGui::IsMouseHoveringAnyWindow()) {
-		// The user clicked in the window. 
-		if (actions == GLFW_PRESS){
-		
-			if (button == GLFW_MOUSE_BUTTON_LEFT){
-				m_left_click = true;
-			}
-			if (button == GLFW_MOUSE_BUTTON_MIDDLE){
-				m_middle_click = true;
-				middle_press = true;
-			}
-			if (button == GLFW_MOUSE_BUTTON_RIGHT){
-				right_press = true;
-				m_right_click = true;
-			}
-
-			if (m_option_model == ModelJoints && (middle_press || right_press)){	// if first click, save state
-				//m_selected_prev_m = m_selected_node->get_transform();
-				save_selected_joints();
-			}
-
-			
-			eventHandled = true;
-		}	// if
-	}	// if
-	bool middle_release, right_release;
-	middle_release = right_release = false;
-	// if release the mouse, cancel signal
-	if (actions == GLFW_RELEASE) {
-		if (button == GLFW_MOUSE_BUTTON_LEFT){
-			if (m_option_model == ModelJoints){
-			}
-			m_left_click = false;
-		}
-		if (button == GLFW_MOUSE_BUTTON_MIDDLE){
-			m_middle_click = false;
-			middle_release = true;
-		}
-		if (button == GLFW_MOUSE_BUTTON_RIGHT){
-			m_right_click = false;
-			right_release = true;
-		}
-		eventHandled = true;
-	}
-
-	return eventHandled;
-}
 
 //----------------------------------------------------------------------------------------
 /*

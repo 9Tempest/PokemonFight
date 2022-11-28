@@ -13,7 +13,7 @@ GeometryNode::GeometryNode(
 	m_nodeType = NodeType::GeometryNode;
 }
 
-GeometryNode::GeometryNode(const GeometryNode& other):SceneNode(other), material(other.material), meshId(other.meshId){
+GeometryNode::GeometryNode(const GeometryNode& other):SceneNode(other), material(other.material), meshId(other.meshId), m_texture(other.m_texture){
 	
 }
 

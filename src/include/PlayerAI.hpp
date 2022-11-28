@@ -8,14 +8,14 @@ class Player : public Visitor{
         std::unordered_map<std::string, SceneNode*> m_node_mapping;
 
         void load_mapping(SceneNode* root_node){
-            std::cout << "load mapping for" <<  m_obj->get_name() << std::endl;
+            //std::cout << "load mapping for" <<  m_obj->get_name() << std::endl;
             root_node->accept(*this);
         }
 
     public:
         void visit(SceneNode* node, const glm::mat4& scale_m = glm::mat4()) override{
             m_node_mapping[node->m_name] = node;
-            std::cout << node->m_name << " maps to " << node << std::endl;
+            //std::cout << node->m_name << " maps to " << node << std::endl;
         }
 
         virtual ~Player(){

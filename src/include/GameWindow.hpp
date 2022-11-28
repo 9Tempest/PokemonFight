@@ -14,6 +14,7 @@
 #include "particle.hpp"
 #include <iostream>
 #include "texture.hpp"
+#include "Scene.hpp"
 enum OptionModel {
 	ModelPosition,
 	ModelJoints,
@@ -56,8 +57,8 @@ protected:
 
 	//-- Virtual callback methods
 	virtual bool cursorEnterWindowEvent(int entered) override;
-	virtual bool mouseMoveEvent(double xPos, double yPos) override;
-	virtual bool mouseButtonInputEvent(int button, int actions, int mods) override;
+	//virtual bool mouseMoveEvent(double xPos, double yPos) override;
+	//virtual bool mouseButtonInputEvent(int button, int actions, int mods) override;
 	virtual bool mouseScrollEvent(double xOffSet, double yOffSet) override;
 	virtual bool windowResizeEvent(int width, int height) override;
 	virtual bool keyInputEvent(int key, int action, int mods) override;
@@ -122,38 +123,20 @@ protected:
 	// sphere removal
 	bool m_z_buffer, m_backface, m_frontface;
 
-	// mouse click
-	bool m_left_click = false;
-	bool m_middle_click = false;
-	bool m_right_click = false;
 	time_stamp m_curr_ts;
 
-	float m_prev_x;
-	float m_prev_y;
-
-	// undo/redo 
-	glm::mat4 m_selected_prev_m;
-	bool m_first_press = false;
 	std::string m_log;
 
+	// scene
+	Scene* m_scene;
 
 	// recursive render
 	virtual void visit(SceneNode* node, const glm::mat4& scale_m = glm::mat4()) override{
 		renderSceneGraph(*node, scale_m);
 	}
 
-	std::unordered_map<JointNode*, std::pair<float, float>> selected_joints;
 	
 
-	void rotate_all_selected_joints(double xAngle, double yAngle);
-	void save_selected_joints(){
-		for (auto& node : selected_joints){
-			node.second.first = node.first->m_angleX;
-			node.second.second = node.first->m_angleY;
-			//std::cout << *node.first << " x angle is " << node.second.first << " y angle is " << node.second.second << std::endl;
-		}
-		
-	}
 
 	
 };
