@@ -125,6 +125,7 @@ void GameWindow::init()
 			getAssetFilePath("cone.obj"),
 			getAssetFilePath("curve.obj"),
 			getAssetFilePath("surtorus.obj"),
+			getAssetFilePath("cube_text.obj"),
 	});
 
 
@@ -150,6 +151,9 @@ void GameWindow::init()
 
 	// init skybox
 	m_skybox->initialize();
+
+	// init texture assets
+	TextureAssets::initialize();
 }
 
 void GameWindow::setup_player_AI(){
@@ -233,6 +237,9 @@ void GameWindow::enableVertexShaderInputSlots()
 		m_normalAttribLocation = m_shader.getAttribLocation("normal");
 		glEnableVertexAttribArray(m_normalAttribLocation);
 
+		m_uvAttribLocation = m_shader.getAttribLocation("aTexCoords");
+		glEnableVertexAttribArray(m_uvAttribLocation);
+
 		CHECK_GL_ERRORS;
 	}
 
@@ -271,6 +278,16 @@ void GameWindow::uploadVertexDataToVbos (
 		CHECK_GL_ERRORS;
 	}
 
+	// Generate VBO to store all vertex UV data
+	{
+		glGenBuffers(1, &m_vbo_vertexUVs);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexUVs);
+		glBufferData(GL_ARRAY_BUFFER, meshConsolidator.getNumVertexUVBytes(),
+			meshConsolidator.getVertexUVDataPtr(), GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		CHECK_GL_ERRORS;
+	}
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -288,6 +305,9 @@ void GameWindow::mapVboDataToVertexShaderInputLocations()
 	// "normal" vertex attribute location for any bound vertex shader program.
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexNormals);
 	glVertexAttribPointer(m_normalAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexUVs);
+	glVertexAttribPointer(m_uvAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	//-- Unbind target, and restore default values:
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -347,6 +367,13 @@ void GameWindow::uploadCommonSceneUniforms() {
 			location = m_shader.getUniformLocation("ambientIntensity");
 			vec3 ambientIntensity(0.25f);
 			glUniform3fv(location, 1, value_ptr(ambientIntensity));
+			CHECK_GL_ERRORS;
+		}
+
+		// set texture location
+		{
+			location = m_shader.getUniformLocation("texture1");
+			glUniform1i(location, 0);
 			CHECK_GL_ERRORS;
 		}
 		
@@ -473,6 +500,13 @@ void GameWindow::guiLogic()
 	
 }
 
+static inline void enable_texture(Texture* text){
+	assert(text != nullptr);
+	glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, text->texturePtr);
+
+}
+
 //----------------------------------------------------------------------------------------
 // Update mesh specific shader uniforms:
 static void updateShaderUniforms(
@@ -502,6 +536,16 @@ static void updateShaderUniforms(
 		vec3 kd;
 		kd = node.material.kd;
 		glUniform3fv(location, 1, value_ptr(kd));
+		CHECK_GL_ERRORS;
+
+		// enable texture mapping or not
+		location = shader.getUniformLocation("enabletexture");
+		int enable_texture_uni = 0;
+		if (node.m_texture != nullptr){
+			enable_texture_uni = 1;
+			enable_texture(node.m_texture);
+		}
+		glUniform1i(location, enable_texture_uni);
 		CHECK_GL_ERRORS;
 	}
 	shader.disable();

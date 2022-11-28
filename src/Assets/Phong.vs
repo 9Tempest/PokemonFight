@@ -3,13 +3,15 @@
 // Model-Space coordinates
 in vec3 position;
 in vec3 normal;
+in vec2 aTexCoords;
+
+out vec2 TexCoords;
 
 struct LightSource {
     vec3 position;
     vec3 rgbIntensity;
 };
 uniform LightSource light;
-
 uniform mat4 ModelView;
 uniform mat4 Perspective;
 
@@ -34,4 +36,5 @@ void main() {
 	vs_out.light = light;
 
 	gl_Position = Perspective * ModelView * vec4(position, 1.0);
+	TexCoords = vec2(aTexCoords.x, aTexCoords.y);
 }

@@ -95,8 +95,10 @@ protected:
 	GLuint m_vao_meshData;
 	GLuint m_vbo_vertexPositions;
 	GLuint m_vbo_vertexNormals;
+	GLuint m_vbo_vertexUVs;
 	GLint m_positionAttribLocation;
 	GLint m_normalAttribLocation;
+	GLint m_uvAttribLocation;
 	ShaderProgram m_shader;
 	ShaderProgram m_shader_skybox;
 

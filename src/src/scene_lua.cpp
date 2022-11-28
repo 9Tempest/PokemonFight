@@ -126,6 +126,7 @@ int gr_import_texture_cmd(lua_State * L)
 
 	const char* texturePath = luaL_checkstring(L, 1);
 	data->texture = new Texture(texturePath);
+  TextureAssets::set_asset(texturePath, data->texture);
 
 	luaL_newmetatable(L, "gr.texture");
 	lua_setmetatable(L, -2);
@@ -320,6 +321,28 @@ int gr_node_set_particle(lua_State* L)
   return 0;
 }
 
+
+extern "C"
+int gr_node_set_texture_cmd(lua_State* L){
+  GRLUA_DEBUG_CALL;
+
+  gr_node_ud* selfdata = (gr_node_ud*)luaL_checkudata(L, 1, "gr.node");
+  luaL_argcheck(L, selfdata != 0, 1, "Node expected");
+
+  GeometryNode* self = dynamic_cast<GeometryNode*>(selfdata->node);
+
+  luaL_argcheck(L, self != 0, 1, "Geometry node expected");
+
+  gr_texture_ud* matdata = (gr_texture_ud*)luaL_checkudata(L, 2, "gr.texture");
+  luaL_argcheck(L, matdata != 0, 2, "texture expected");
+
+  self->m_texture = matdata->texture;
+  assert(self->m_texture != nullptr);
+  assert(TextureAssets::get_asset(self->m_texture->get_name()) == self->m_texture);
+
+  return 0;
+}
+
 // Set a node's material
 extern "C"
 int gr_node_set_material_cmd(lua_State* L)
@@ -465,6 +488,7 @@ static const luaL_Reg grlib_node_methods[] = {
   {"add_child", gr_node_add_child_cmd},
   {"add_child_deepcpy", gr_node_add_child_deepcpy_cmd},
   {"set_material", gr_node_set_material_cmd},
+  {"set_texture", gr_node_set_texture_cmd},
   {"set_particle", gr_node_set_particle},
   {"scale", gr_node_scale_cmd},
   {"rotate", gr_node_rotate_cmd},

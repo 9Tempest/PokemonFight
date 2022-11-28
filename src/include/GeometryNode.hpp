@@ -5,7 +5,7 @@
 #include "SceneNode.hpp"
 
 class JointNode;
-
+class Texture;
 class GeometryNode : public SceneNode {
 
 public:
@@ -20,6 +20,7 @@ public:
 	
 
 	Material material;
+	Texture* m_texture = nullptr;
 
 	// Mesh Identifier. This must correspond to an object name of
 	// a loaded .obj file.

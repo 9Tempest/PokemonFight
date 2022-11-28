@@ -1,5 +1,10 @@
 #version 330
 
+uniform bool enabletexture;
+uniform sampler2D texture1;
+
+in vec2 TexCoords;
+
 struct LightSource {
     vec3 position;
     vec3 rgbIntensity;
@@ -24,8 +29,6 @@ uniform Material material;
 // Ambient light intensity for each RGB component.
 uniform vec3 ambientIntensity;
 
-// determine is picking or not
-uniform bool ispicking;
 
 vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
 	LightSource light = fs_in.light;
@@ -39,7 +42,13 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
     float n_dot_l = max(dot(fragNormal, l), 0.0);
 
 	vec3 diffuse;
-	diffuse = material.kd * n_dot_l;
+    vec3 color;
+    if (enabletexture){
+        color = vec3(texture(texture1, TexCoords));
+    }   else {
+        color = material.kd;
+    }
+	diffuse = color * n_dot_l;
 
     vec3 specular = vec3(0.0);
 
@@ -55,10 +64,7 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
 }
 
 void main() {
-    if (!ispicking){
-        fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
-    }   else {
-        fragColour = vec4(material.kd, 1.0);
-    }
+
+    fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
 	
 }

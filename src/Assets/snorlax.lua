@@ -242,11 +242,7 @@ neck:translate(0,8,0)
 
 rootNode:translate(-10, 0, -10.0)
 
-Dirt = gr.material({0.6078431, 0.4627451, 0.3254902}, {0.2, 0.2, 0.2}, 10)
 
-DirtParticle = gr.mesh('cube', 'dirt')
-DirtParticle:set_material(Dirt)
-DirtParticle:set_particle()
 
 return rootNode
 
