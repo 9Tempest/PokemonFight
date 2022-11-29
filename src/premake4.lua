@@ -35,6 +35,7 @@ if os.get() == "linux" then
         "imgui",
         "glfw3",
         "lua",
+        "irrklang",gi
         "GL",
         "Xinerama",
         "Xcursor",
