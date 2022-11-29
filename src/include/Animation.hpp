@@ -5,6 +5,7 @@
 #include <vector>
 #include "timestamp.hpp"
 #include <deque>
+#include <memory>
 #define SNORLAX_ANI_ASSET "Assets/snorlax.ani"
 #define PIKACHU_ANI_ASSET "Assets/pikachu.ani"
 

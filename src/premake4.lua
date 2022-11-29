@@ -35,9 +35,10 @@ if os.get() == "linux" then
         "imgui",
         "glfw3",
         "lua",
-        "irrklang",gi
+        "IrrKlang",
         "GL",
         "Xinerama",
+	"lodepng",
         "Xcursor",
         "Xxf86vm",
         "Xi",
@@ -53,9 +54,12 @@ end
 if os.get() == "macosx" then
     linkOptionList = { "-framework IOKit", "-framework Cocoa", "-framework CoreVideo", "-framework OpenGL", "-lirrklang" }
 end
+if os.get() == "linux" then
+    linkOptionList = { "-Wl,-R../lib" }
+end
 
 
-buildOptions = {"-std=c++14", "-O2"}
+buildOptions = {"-std=c++17", "-O2"}
 
 solution "CS488-Projects"
     configurations { "Debug", "Release" }
