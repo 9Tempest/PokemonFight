@@ -142,7 +142,6 @@ extern "C"
 int gr_set_skybox_cmd(lua_State * L)
 {
 	GRLUA_DEBUG_CALL;
-  cout << "here" << endl;
 	// get texture
 	gr_skybox_ud* data = (gr_skybox_ud*)lua_newuserdata(L, sizeof(gr_skybox_ud));
   data->texture = 0;
@@ -153,7 +152,6 @@ int gr_set_skybox_cmd(lua_State * L)
   luaL_newmetatable(L, "gr.skybox");
 	lua_setmetatable(L, -2);
 
-   cout << "here2" << endl;
 
 	return 1;
 }
@@ -317,7 +315,6 @@ int gr_node_set_particle(lua_State* L)
 
   luaL_argcheck(L, self != 0, 1, "Geometry node expected");
   ParticleAssets::add_asset(self);
-  cout << "set particle " << self->m_name << endl;
   return 0;
 }
 

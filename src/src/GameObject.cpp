@@ -3,7 +3,7 @@
 #include "include.hpp"
 #include "debug.hpp"
 #include "PlayerAI.hpp"
-
+#include "Scene.hpp"
 using namespace std;
 using namespace glm;
 
@@ -38,16 +38,21 @@ void GameObject::set_orientation(Orientation o){
       
     }
 
-GameObject::GameObject(std::string name, int hp, shared_ptr<SceneNode> node): Animator(node), m_name(name), m_hp(hp), m_status(Status::Idle){
+GameObject::GameObject(const float scale,std::string name, int hp, shared_ptr<SceneNode> node): Animator(node), m_scale(scale), m_name(name), m_hp(hp), m_status(Status::Idle){
     m_pos = vec3(m_node->trans[3]);
     m_target_pos = m_pos;
+    m_tmp_pos = m_pos;
 }
 
 void GameObject::move(float x, float z){
     DLOG("Object %s move x:%f z:%f", m_name.c_str(), x, z);
     assert(m_status == Status::Idle);
     m_status = Status::Moving;
-    m_target_pos = m_pos +  vec3(x, 0, z);
+    if (!Scene::on_boundary(m_pos + vec3(x,0,z))){
+         m_target_pos = m_pos +  vec3(x, 0, z);
+    }   else {
+        m_target_pos = m_pos;
+    }
     m_tmp_pos = m_pos;
 }
 
@@ -71,7 +76,7 @@ void Pikachu::update(){
     }
 
     // if done animation, set status to idle
-    if (!get_has_anim()){
+    if (!get_has_anim() && m_status != Status::Dead){
         m_status = Status::Idle;
         return;
     }
@@ -88,6 +93,7 @@ void Pikachu::update(){
 }
 
 void Pikachu::move(float x, float y){
+    assert(m_status == Status::Idle);
     GameObject::move(x, y);
     Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("pikachu_move");
     assert(ani_ptr != nullptr);
@@ -103,9 +109,9 @@ void Pikachu::attack(const std::string& name, GameObject* target){
     return;
 }
 
-void Pikachu::under_attack(AttackUnit* attackUnit){
-    // add details here
-
+void Pikachu::die(){
+    m_node->scale(vec3(1, 0.1, 1));
+    m_node->translate(vec3(0, -5.0f, 0));
 }
 
 Pikachu::~Pikachu(){
@@ -124,18 +130,34 @@ void Snorlax::attack(const std::string& name, GameObject* target){
     return;
 }
 
-void Snorlax::under_attack(AttackUnit* attackUnit){
-    // add details here
 
+void Snorlax::stun(){
+    Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("snorlax_bodyslam_stun");
+    assert(ani_ptr != nullptr);
+    do_animation(*ani_ptr);
+    m_status = Status::Stunned;
+     m_target_pos = m_pos;
+    m_tmp_pos = m_pos;
 }
 
 Snorlax::~Snorlax(){
     
 }
 
-void Snorlax::update(){
-    
+void Snorlax::die(){
+    Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("snorlax_bodyslam_dead");
+    assert(ani_ptr != nullptr);
+    do_animation(*ani_ptr);
+    m_status = Status::Dead;
+    m_target_pos = m_pos;
+    m_tmp_pos = m_pos;
+}
 
+void Snorlax::update(){
+
+    if (!get_has_anim() && m_status == Status::Dead){
+        return;
+    }
 
     if (!get_has_anim() && m_attacku == nullptr){
         m_status = Status::Idle;

@@ -29,7 +29,7 @@ tile_grass:set_material(green)
 tile_grass:set_texture(GrassTexture)
 
 for i = 0, 15 do
-    for j = 0, 10 do
+    for j = 0, 6 do
         tile = gr.node('tile' .. tostring(i) .. tostring(j))
         tile:add_child_deepcpy(tile_grass)
         tile:translate(i*10, 0, j*10)
@@ -90,8 +90,7 @@ for i = 0, 15 do
     rootnode:add_child(fence_instance)
  end
 
-rootnode:rotate('x', 10)
-rootnode:translate(0,-10,-10.0)
+rootnode:translate(0,-8,-10.0)
 
 return rootnode
 

@@ -109,7 +109,7 @@ void dirt_flying_effect(float radius, const glm::vec3& pos){
         float positionX = radius * cos( phi );
         float positionZ = radius * sin( phi );
         vec3 ppos = vec3(positionX+pos.x, GROUND, positionZ+pos.z);
-        vec3 vel = normalize(ppos - pos) + vec3(0, 8, 0);
+        vec3 vel = 2 * normalize(ppos - pos) + vec3(0, 10, 0);
         ParticleProps pps{ppos, vel, 3.0f};
         ParticleAssets::fetch_system("dirt")->Emit(pps);
     }
@@ -118,7 +118,6 @@ void dirt_flying_effect(float radius, const glm::vec3& pos){
 const int NUM_LIGHTNING_PTS = 10;
 
 void lightning_effect(const glm::vec3& pos, const glm::vec3& dir){
-    cout << "pos is " << pos << " dir is " << dir << endl;
     int num_pts = NUM_LIGHTNING_PTS;
     float rot_angle = 0.0f;
     if (dir.z != 0.0f){

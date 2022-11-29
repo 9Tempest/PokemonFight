@@ -53,9 +53,6 @@ std::unordered_map<SceneNode*, mat4> Animator::calculateCurrPose(KeyFrame * f1, 
     for (auto & p : f1->transforms){
         if (f2->transforms.find(p.first) == f2->transforms.end()) continue;
         poses[p.first] = JointTransform::interpolate(p.second, f2->transforms[p.first], progression);
-        if (p.first == m_node.get()){
-            cout << "mat is " << poses[p.first] << endl;
-        }
     }
     return move(poses);
 }
@@ -140,7 +137,7 @@ void Animator::do_animation( const Animation& anim){
 AnimationLoader::AnimationLoader(){
     load_asset(PIKACHU_ANI_ASSET, HumanPlayer::get_instance());
     load_asset(SNORLAX_ANI_ASSET, AI::get_instance());
-    print_assets();
+    //print_assets();
 }
 
 void AnimationLoader::print_assets(){

@@ -145,7 +145,7 @@ void SceneNode::rotatelocal(char axis, float angle, const glm::mat4& recoveryM, 
 }
 
 void SceneNode::rotatelocalxy(float angleX, float angleY, const glm::mat4& recoveryM){
-	mat4 rot_matrix_x = glm::rotate(degreesToRadians(angleX), vec3(0,0,1));
+	mat4 rot_matrix_x = glm::rotate(-degreesToRadians(angleX), vec3(0,0,1));
 	mat4 rot_matrix_y = glm::rotate(degreesToRadians(angleY), vec3(0,1,0));
 	mat4 rot_matrix = recoveryM * rot_matrix_x *rot_matrix_y  * inverse(recoveryM);
 	rotationAndTransl = rot_matrix * rotationAndTransl;

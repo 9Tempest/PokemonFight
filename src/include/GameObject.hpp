@@ -28,6 +28,7 @@ class GameObject : public Animator{
   
   protected:
     //ParticleSystem m_particleSystem;
+    const float m_scale;
     std::string m_name;
     glm::vec3 m_pos;
     glm::vec3 m_tmp_pos; // for move interpolation
@@ -45,8 +46,9 @@ class GameObject : public Animator{
     // GameObject(std::string name, int hp, SceneNode* node):m_name(name), m_hp(hp), m_node(node){
         
     // }
-    GameObject(std::string name, int hp, std::shared_ptr<SceneNode> node);
+    GameObject(const float scale, std::string name, int hp, std::shared_ptr<SceneNode> node);
     // for debugging purpose
+    const float get_scale() const{return m_scale;}
     Status get_status() const {return m_status;}
     void set_status(Status s){m_status = s;}
     std::string get_name() const {return m_name;}
@@ -95,21 +97,31 @@ class GameObject : public Animator{
 
     */
     virtual void attack(const std::string& name, GameObject* target) = 0;
-    virtual void under_attack(AttackUnit* attackUnit) = 0;
-
+    virtual void die() = 0;
+    virtual void under_attack(AttackUnit* attackUnit) {
+      assert(attackUnit != nullptr);
+      m_hp -= attackUnit->get_damage();
+      if (m_hp <= 0){
+        m_hp = 0.0f;
+        die();
+        m_status = Status::Dead;
+      }
+    }
+    virtual void stun(){}
+    
 };
 
 class Pikachu: public GameObject{
 
   public:
-    Pikachu(std::shared_ptr<SceneNode> node): GameObject("Pikachu", 100, node){
+    Pikachu(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Pikachu", 100, node){
 
     }
     ~Pikachu();
     void update() override;
     void move(float x, float y) override;
     void attack(const std::string& name,  GameObject* target) override;
-    void under_attack(AttackUnit* attackUnit) override;
+    void die() override;
 
 };
 
@@ -119,13 +131,13 @@ class Snorlax: public GameObject{
 
   public:
     float get_radius() const override { return m_radius; }
-    Snorlax(std::shared_ptr<SceneNode> node): GameObject("Snorlax", 500, node), m_radius(5.0f){
+    Snorlax(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Snorlax", 50, node), m_radius(8.0f){
 
     }
     ~Snorlax();
     void update() override;
     void attack(const std::string& name,  GameObject* target) override;
-    void under_attack(AttackUnit* attackUnit) override;
-
+    void die() override;
+    void stun() override;
 
 };

@@ -16,7 +16,7 @@ class AttackUnit{
     std::string m_name;
     float m_damage;
     bool m_done = false;
-    glm::vec4 m_pos;
+    glm::vec3 m_pos;
     GameObject* m_attacker = nullptr;
     GameObject* m_target = nullptr;
     AttackUnitArgs m_args;
@@ -30,7 +30,7 @@ class AttackUnit{
                 m_ts = get_curr_time();
             }
         
-        void set_position_target_args(const glm::vec4& pos, GameObject* target, const AttackUnitArgs& args){
+        void set_position_target_args(const glm::vec3& pos, GameObject* target, const AttackUnitArgs& args){
             m_pos = pos;
             m_target = target;
             m_args = args;
@@ -40,31 +40,28 @@ class AttackUnit{
         virtual bool hit() = 0;
 
         virtual void update(const time_stamp& curr_ts){}
+
+        float get_damage() const {return m_damage;}
 };
 
 class Discharge : public AttackUnit{
+    glm::vec3 m_dir;
     float remaining_particle_effect_time = 0.095f;
     public:
         Discharge(GameObject*attacker, GameObject*attackee);
-        bool hit(){
-
-            return false;
-        }
+        bool hit() override;
         void update(const time_stamp& curr_ts) override;
 
 };
 
 class BodySlam : public AttackUnit{
     bool phase1 = false;
-    
-        void phase2();
+    double m_radius_square;
+    void phase2();
     public:
         bool is_touch_sky = false;
         BodySlam(GameObject*attacker, GameObject*attackee);
-        bool hit(){
-
-            return false;
-        }
+        bool hit() override;
 
         void update(const time_stamp& curr_ts) override;
 

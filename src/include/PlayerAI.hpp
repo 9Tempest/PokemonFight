@@ -56,6 +56,7 @@ class AI : public Player{
             static AI p;
             return &p;
         }
+
 };
 
 class HumanPlayer : public Player{

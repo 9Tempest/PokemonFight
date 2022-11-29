@@ -20,7 +20,6 @@ std::unordered_map<std::string, Texture*> TextureAssets::assets;
 
 void TextureAssets::initialize(){
     for (auto& p : assets){
-        cout << "initialize asset " << p.first << endl;
         p.second->initialize();
     }
 }
@@ -56,7 +55,6 @@ void Texture::initialize(const std::string& assetsDir){
     // Unbind 
     glBindTexture(GL_TEXTURE_2D, 0);
     CHECK_GL_ERRORS;
-    cout << "init " << m_filePath << " success!" << endl;
 }
 
 

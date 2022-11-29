@@ -25,7 +25,7 @@ abdomen:translate(0,0.5,0.5)
 
 -- Arm
 -- large arm
-shoulderr =  gr.joint('shoulderr', {-30,0, 30}, {0, 0, 0})
+shoulderr =  gr.joint('shoulderr', {-60,0, 60}, {0, 0, 0})
 large_arm_r = gr.mesh('sphere', 'large_arm_r')
 large_arm_r:set_material(TealBlue)
 large_arm_r:translate(1.2,0,0)
@@ -162,7 +162,7 @@ turso:add_child(leg_instance_l)
 
 
 -- head part
-neck = gr.joint("neck", {0,0, 0}, {-60, 0, 60})
+neck = gr.joint("neck", {-60,0, 60}, {0, 0, 0})
 turso:add_child(neck)
 head = gr.mesh('sphere', 'head')
 head:scale(4,4,3)

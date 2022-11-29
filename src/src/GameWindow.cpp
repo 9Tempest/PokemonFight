@@ -24,6 +24,11 @@ float GameWindow::m_shake_remaining_time = 0.0f;
 float GameWindow::m_shake_time = 0.0f;
 float GameWindow::m_shake_remaining_force = 0.0f;
 float GameWindow::m_shake_force = 0.0f;
+
+static inline bool is_snorlax_idle(){
+	return AI::get_instance()->get_GameObject()->get_status() == Status::Idle;
+}
+
 //----------------------------------------------------------------------------------------
 // Constructor
 GameWindow::GameWindow(const vector<string> & luaSceneFile)
@@ -155,6 +160,9 @@ void GameWindow::init()
 
 	// init texture assets
 	TextureAssets::initialize();
+
+	// init start snorlax
+	AI::get_instance()->get_GameObject()->stun();
 }
 
 void GameWindow::setup_player_AI(){
@@ -408,6 +416,13 @@ void GameWindow::processCameraShake(){
  */
 void GameWindow::appLogic()
 {
+	// if snorlax is idle, let him attack
+	if (is_snorlax_idle()){
+		// change it to general attack method
+		AI::get_instance()->get_GameObject()->attack("BodySlam", HumanPlayer::get_instance()->get_GameObject());
+	}
+
+
 	// Place per frame, application logic here ...
 	if (m_backface && m_frontface){
 		glEnable(GL_CULL_FACE);
@@ -457,44 +472,10 @@ void GameWindow::guiLogic()
 	ImGui::Begin("Menu", &showDebugWindow, ImVec2(100,100), opacity,
 			windowFlags);
 
-		// Application panel
-		if (ImGui::BeginMenu("Application")){
-			// Create Button, and check if it was clicked:
-			if( ImGui::Button( "Reset Position (I)" ) ) {
-				resetPosition();
-			}
-			if( ImGui::Button( "Reset Orientation (O)" ) ) {
-				resetRotation();
-			}
-			if( ImGui::Button( "Reset Joints (J)" ) ) {
-				resetJoints();
-			}
-			if( ImGui::Button( "Reset All (A)" ) ) {
-				resetAll();
-			}
-			if( ImGui::Button( "Quit (Q)" ) ) {
-				glfwSetWindowShouldClose(m_window, GL_TRUE);
-			}
-			ImGui::EndMenu();
-		}	// if
-
-		// Option panel
-		if (ImGui::BeginMenu("Option")){
-			// Create Button, and check if it was clicked:
-			if (ImGui::Checkbox("Z-buffer (Z)", &m_z_buffer)){}
-			if (ImGui::Checkbox("Backface culling (B)", &m_backface)){}
-			if (ImGui::Checkbox("Frontface culling (F)", &m_frontface)){}
-			ImGui::EndMenu();
-		}	// if
-
-		if( ImGui::RadioButton( "Position/Orientation (P)", &m_option_model, ModelPosition ) ) {}
-		if( ImGui::RadioButton( "Joints (J)", &m_option_model, ModelJoints ) ) {}
-		// Add more gui elements here here ...
-
 
 		
-		ImGui::Text( "Log: %s", m_log.c_str());
-		ImGui::Text( "Framerate: %.1f FPS", ImGui::GetIO().Framerate );
+		ImGui::Text( "Snorlax hp: %d", AI::get_instance()->get_GameObject()->get_hp());
+		ImGui::Text( "Pikachu hp: %d", HumanPlayer::get_instance()->get_GameObject()->get_hp());
 
 	ImGui::End();
 
@@ -561,8 +542,8 @@ void GameWindow::draw() {
 
 
 	glEnable( GL_DEPTH_TEST );
-	HumanPlayer::get_instance()->get_root_node()->accept(*this, scale(vec3(1.0, 1.0, 1.0)));
-	AI::get_instance()->get_root_node()->accept(*this, scale(vec3(1.0f, 1.0f, 1.0f)));
+	HumanPlayer::get_instance()->get_root_node()->accept(*this, scale(vec3(HumanPlayer::get_instance()->get_GameObject()->get_scale())));
+	AI::get_instance()->get_root_node()->accept(*this, scale(vec3(AI::get_instance()->get_GameObject()->get_scale())));
 	renderParticles(*ParticleAssets::fetch_system("dirt"));
 	renderParticles(*ParticleAssets::fetch_system("lightning"));
 	renderParticles(*ParticleAssets::fetch_system("electornics"));
@@ -748,10 +729,14 @@ void static inline emit_dirt_test(){
 }
 
 
-const float STEP_SIZE = 3.0f;
+const float STEP_SIZE = 5.0f;
 
 static inline bool is_pikachu_idle(){
 	return HumanPlayer::get_instance()->get_GameObject()->get_status() == Status::Idle;
+}
+
+static inline bool is_pikachu_moving(){
+	return HumanPlayer::get_instance()->get_GameObject()->get_status() == Status::Moving;
 }
 
 //----------------------------------------------------------------------------------------
@@ -771,7 +756,7 @@ bool GameWindow::keyInputEvent (
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_J){
-			set_anim_pika("pikachu_attack");
+			set_anim_snorlax("snorlax_bodyslam_stun");
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_S){

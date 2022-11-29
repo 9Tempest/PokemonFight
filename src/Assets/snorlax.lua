@@ -239,8 +239,8 @@ neck:translate(0,8,0)
 
 
 -- Body part
+rootNode:translate(-10, 1, -10.0)
 
-rootNode:translate(-10, 0, -10.0)
 
 
 

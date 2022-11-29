@@ -40,7 +40,6 @@ public:
 		m_shake_remaining_time = duration;
 		m_shake_force = force;
 		m_shake_remaining_force = force;
-		std::cout << "start shaking" << std::endl;
 	}
 
 protected:

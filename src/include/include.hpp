@@ -10,6 +10,6 @@
 #include "cs488-framework/MathUtils.hpp"
 
 
-#define GROUND -5
+#define GROUND -7
 #define GRAVITY 9.8f
 
