@@ -14,8 +14,11 @@ using namespace std;
 #include "PlayerAI.hpp"
 #include "GameObject.hpp"
 #include "random.hpp"
+#include "sound.hpp"
+
 using namespace glm;
 using namespace std;
+
 static bool show_gui = true;
 
 mat4 GameWindow::m_view;
@@ -24,6 +27,8 @@ float GameWindow::m_shake_remaining_time = 0.0f;
 float GameWindow::m_shake_time = 0.0f;
 float GameWindow::m_shake_remaining_force = 0.0f;
 float GameWindow::m_shake_force = 0.0f;
+
+
 
 static inline bool is_snorlax_idle(){
 	return AI::get_instance()->get_GameObject()->get_status() == Status::Idle;
@@ -163,6 +168,9 @@ void GameWindow::init()
 
 	// init start snorlax
 	AI::get_instance()->get_GameObject()->stun();
+
+	SoundEngine::init();
+	//SoundEngine::play2D(SOUND_BACKGROUND_MUSIC, true);
 }
 
 void GameWindow::setup_player_AI(){

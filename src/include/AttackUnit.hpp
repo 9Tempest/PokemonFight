@@ -2,6 +2,7 @@
 #include <string>
 #include <glm/glm.hpp>
 #include "timestamp.hpp"
+#include "sound.hpp"
 
 class GameObject;
 
@@ -21,6 +22,7 @@ class AttackUnit{
     GameObject* m_target = nullptr;
     AttackUnitArgs m_args;
     time_stamp m_ts;
+    irrklang::ISound* m_sound = nullptr;
   public:
         virtual ~AttackUnit(){
         }
