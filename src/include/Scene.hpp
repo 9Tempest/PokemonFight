@@ -3,11 +3,12 @@
 #include "SceneNode.hpp"
 class Scene{
     std::shared_ptr<SceneNode> m_node;
+    
+    public:
     static constexpr float XMIN = -50.0f;
     static constexpr float XMAX = 50.0f;
     static constexpr float ZMAX = 5.0f;
     static constexpr float ZMIN = -50.0f;
-    public:
         Scene(std::shared_ptr<SceneNode> node):m_node(node) {
             
         }

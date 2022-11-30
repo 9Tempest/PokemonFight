@@ -54,8 +54,12 @@ void BodySlam::update(const time_stamp& ts){
         }
         m_attacker->stun();
         m_done = true;
+        #ifdef UNMUTED
         m_sound = SoundEngine::play3D(SOUND_SLAM, m_attacker->get_pos());
+        m_sound->setVolume(1.5f);
         assert(m_sound != nullptr);
+        #else
+        #endif
     }
 }
 
@@ -65,8 +69,12 @@ Discharge::Discharge(GameObject*attacker, GameObject*attackee):AttackUnit("Disch
         assert(ani_ptr != nullptr);
         assert(m_attacker != nullptr);
         attacker->do_animation(*ani_ptr);
+        #ifdef UNMUTED
         m_sound = SoundEngine::play3D(SOUND_LIGHTNING, m_attacker->get_pos());
+        m_sound->setVolume(1.5f);
         assert(m_sound != nullptr);
+        #else
+        #endif
     }
 
 
@@ -107,7 +115,6 @@ void Discharge::update(const time_stamp& ts){
             //cout << "hit target! at pos " << m_target->get_pos() << endl;
             GameWindow::cameraShake(0.1f, 0.5f);
             m_target->under_attack(this);
-            m_sound->stop();
         }
         lightning_effect(pos, dir);
         remaining_particle_effect_time = 0.095f;
@@ -115,5 +122,9 @@ void Discharge::update(const time_stamp& ts){
 
     if (m_attacker->get_status() != Status::Attacking){
         m_done = true;
+        #ifdef UNMUTED
+        m_sound->stop();
+        #else
+        #endif
     }
 }

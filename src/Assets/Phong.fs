@@ -1,7 +1,8 @@
-#version 330
+#version 330 core
 
 uniform bool enabletexture;
 uniform sampler2D texture1;
+uniform sampler2D shadow;
 
 in vec2 TexCoords;
 
@@ -14,6 +15,8 @@ in VsOutFsIn {
 	vec3 position_ES; // Eye-space position
 	vec3 normal_ES;   // Eye-space normal
 	LightSource light;
+    vec4 FragPosLightSpace;
+	vec3 FragPos;
 } fs_in;
 
 
@@ -28,6 +31,22 @@ uniform Material material;
 
 // Ambient light intensity for each RGB component.
 uniform vec3 ambientIntensity;
+
+float ShadowCalculation(vec4 fragPosLightSpace, float bias)
+{
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+    float closestDepth = texture(shadow, projCoords.xy).r; 
+    // get depth of current fragment from light's perspective
+    float currentDepth = projCoords.z;
+    // check whether current frag pos is in shadow
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+
+    return shadow;
+}
 
 
 vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
@@ -60,11 +79,17 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
         specular = material.ks * pow(n_dot_h, material.shininess);
     }
 
-    return ambientIntensity + light.rgbIntensity * (diffuse + specular);
+    // bias
+    float bias = max(0.05 * (1.0 -n_dot_l), 0.05);  
+
+    // calculate shadow
+    float shadow_factor = ShadowCalculation(fs_in.FragPosLightSpace, bias);
+
+    return ambientIntensity + ((1.0-shadow_factor) * light.rgbIntensity) * (diffuse + specular);
 }
 
 void main() {
-
+    vec4 tmp_color = texture(shadow, TexCoords);
     fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
 	
 }

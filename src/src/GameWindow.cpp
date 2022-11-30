@@ -14,7 +14,7 @@ using namespace std;
 #include "PlayerAI.hpp"
 #include "GameObject.hpp"
 #include "random.hpp"
-#include "sound.hpp"
+
 
 using namespace glm;
 using namespace std;
@@ -28,11 +28,25 @@ float GameWindow::m_shake_time = 0.0f;
 float GameWindow::m_shake_remaining_force = 0.0f;
 float GameWindow::m_shake_force = 0.0f;
 
+void GameWindow::play_music(const std::string& music_name, bool is_loop){
+	#ifdef UNMUTED
+	if (m_sound != nullptr){
+		m_sound->stop();
+	}
+	m_sound = SoundEngine::play2D(music_name, is_loop);
+	assert(m_sound != nullptr);
+	std::cout << "playing " << music_name << std::endl;
+	m_sound->setVolume(0.1f);
+	#else
 
+	#endif
+}
 
 static inline bool is_snorlax_idle(){
 	return AI::get_instance()->get_GameObject()->get_status() == Status::Idle;
 }
+
+ISound* GameWindow::m_sound = nullptr;
 
 //----------------------------------------------------------------------------------------
 // Constructor
@@ -166,10 +180,16 @@ void GameWindow::init()
 	// init texture assets
 	TextureAssets::initialize();
 
+	// init shadow mapping
+	m_shadowmap.init(m_light);
+	
+
 	// init start snorlax
 	AI::get_instance()->get_GameObject()->stun();
 
 	SoundEngine::init();
+
+	play_music(SOUND_BACKGROUND_MUSIC, true);
 	//SoundEngine::play2D(SOUND_BACKGROUND_MUSIC, true);
 }
 
@@ -225,18 +245,39 @@ std::shared_ptr<SceneNode> GameWindow::processLuaSceneFile(const std::string & f
 	
 }
 
+void GameWindow::render_scene(ShaderProgram& prog){
+	set_shader(prog);
+
+	HumanPlayer::get_instance()->get_root_node()->accept(*this, scale(vec3(HumanPlayer::get_instance()->get_GameObject()->get_scale())));
+	AI::get_instance()->get_root_node()->accept(*this, scale(vec3(AI::get_instance()->get_GameObject()->get_scale())));
+	renderParticles(*ParticleAssets::fetch_system("dirt"));
+	renderParticles(*ParticleAssets::fetch_system("lightning"));
+	renderParticles(*ParticleAssets::fetch_system("electornics"));
+	m_scene->render(*this);
+
+	m_curr_shader_ptr = nullptr;
+}
+
 //----------------------------------------------------------------------------------------
 void GameWindow::createShaderProgram()
 {
+	// phong shader	
 	m_shader.generateProgramObject();
 	m_shader.attachVertexShader( getAssetFilePath("Phong.vs").c_str() );
 	m_shader.attachFragmentShader( getAssetFilePath("Phong.fs").c_str() );
 	m_shader.link();
 
+	// skybox shader
 	m_shader_skybox.generateProgramObject();
 	m_shader_skybox.attachVertexShader( getAssetFilePath("skybox.vs").c_str() );
 	m_shader_skybox.attachFragmentShader( getAssetFilePath("skybox.fs").c_str() );
 	m_shader_skybox.link();
+
+	// shadow map depth shader
+	m_shader_shadow_depth.generateProgramObject();
+	m_shader_shadow_depth.attachVertexShader( getAssetFilePath("shadow_depth.vs").c_str() );
+	m_shader_shadow_depth.attachFragmentShader( getAssetFilePath("shadow_depth.fs").c_str() );
+	m_shader_shadow_depth.link();
 }
 
 //----------------------------------------------------------------------------------------
@@ -257,6 +298,8 @@ void GameWindow::enableVertexShaderInputSlots()
 		m_uvAttribLocation = m_shader.getAttribLocation("aTexCoords");
 		glEnableVertexAttribArray(m_uvAttribLocation);
 
+		m_positionAttribLocationShadow = m_shader_shadow_depth.getAttribLocation("position");
+		glEnableVertexAttribArray(m_positionAttribLocationShadow);
 		CHECK_GL_ERRORS;
 	}
 
@@ -317,6 +360,7 @@ void GameWindow::mapVboDataToVertexShaderInputLocations()
 	// "position" vertex attribute location for any bound vertex shader program.
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexPositions);
 	glVertexAttribPointer(m_positionAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glVertexAttribPointer(m_positionAttribLocationShadow, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	// Tell GL how to map data from the vertex buffer "m_vbo_vertexNormals" into the
 	// "normal" vertex attribute location for any bound vertex shader program.
@@ -356,9 +400,23 @@ void GameWindow::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void GameWindow::initLightSources() {
 	// World-space position
-	m_light.position = vec3(0.0f, 10.0f, 0.0f);
+	m_light.position = vec3(1.0f, 10.0f, 10.0f);
 	m_light.rgbIntensity = vec3(1.0f,1.0f, 1.0f); // light
 }
+
+
+void GameWindow::uploadShadowMapUniforms() {
+	m_shader_shadow_depth.enable();
+	{
+		//-- Set Perpsective matrix uniform for the scene:
+		GLint location = m_shader_shadow_depth.getUniformLocation("lightSpaceMatrix");
+		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_shadowmap.lightSpaceMatrix));
+		CHECK_GL_ERRORS;
+	}
+
+	m_shader_shadow_depth.disable();
+}
+
 
 //----------------------------------------------------------------------------------------
 void GameWindow::uploadCommonSceneUniforms() {
@@ -387,12 +445,29 @@ void GameWindow::uploadCommonSceneUniforms() {
 			CHECK_GL_ERRORS;
 		}
 
+		// set shadowMap location
+		{
+			location = m_shader.getUniformLocation("shadow");
+			glUniform1i(location, 1);
+			
+			CHECK_GL_ERRORS;
+		}
+
 		// set texture location
 		{
 			location = m_shader.getUniformLocation("texture1");
 			glUniform1i(location, 0);
 			CHECK_GL_ERRORS;
 		}
+
+		{
+			//-- Set Perpsective matrix uniform for the scene:
+			GLint location = m_shader.getUniformLocation("lightSpaceMatrix");
+			glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_shadowmap.lightSpaceMatrix));
+			CHECK_GL_ERRORS;
+		}
+
+		
 		
 
 	}
@@ -451,6 +526,7 @@ void GameWindow::appLogic()
 	ParticleAssets::fetch_system("electornics")->update(false);
 	processCameraShake();
 	uploadCommonSceneUniforms();
+	uploadShadowMapUniforms();
 	m_curr_ts = get_curr_time();
 	//cout << "frame counter is " << time(NULL) << endl;
 }
@@ -490,54 +566,83 @@ void GameWindow::guiLogic()
 	
 }
 
-static inline void enable_texture(Texture* text){
-	assert(text != nullptr);
-	glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, text->texturePtr);
+static inline void enable_texture(GLuint texturePtr, uint id = 0){
+	glActiveTexture(GL_TEXTURE0 + id);
+    glBindTexture(GL_TEXTURE_2D, texturePtr);
 
+}
+
+void GameWindow::shadow_processing(){
+	glViewport(0, 0, 1212, 1212);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_shadowmap.depthMapFBO);
+            glClear(GL_DEPTH_BUFFER_BIT);
+			render_scene(m_shader_shadow_depth);
+            
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void GameWindow::scene_processing(){
+	glViewport(0, 0, m_framebufferWidth, m_framebufferHeight);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	enable_texture(m_shadowmap.depthMap, 1);
+	render_scene(m_shader);
 }
 
 //----------------------------------------------------------------------------------------
 // Update mesh specific shader uniforms:
-static void updateShaderUniforms(
+static void updateShaderUniformsScene(
 		const ShaderProgram & shader,
 		const GeometryNode & node,
 		const glm::mat4 & viewMatrix,
-		const glm::mat4 & scale_m = mat4()
+		const glm::mat4 & scale_m = mat4(),
+		bool is_shadow=false
 ) {
 
 	shader.enable();
-	{
-		//-- Set ModelView matrix:
-		GLint location = shader.getUniformLocation("ModelView");
-		mat4 modelView = viewMatrix * scale_m * node.trans;
-		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(modelView));
-		CHECK_GL_ERRORS;
+	if (!is_shadow){
+		{
+			//-- Set ModelView matrix:
+			GLint location = shader.getUniformLocation("Model");
+			mat4 modelView = viewMatrix * scale_m * node.trans;
+			glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(scale_m * node.trans));
+			CHECK_GL_ERRORS;
+			
+			// - Set View matrix:
+			location = shader.getUniformLocation("View");
+			glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(viewMatrix));
+			CHECK_GL_ERRORS;
 
-		//-- Set NormMatrix:
-		location = shader.getUniformLocation("NormalMatrix");
-		mat3 normalMatrix = glm::transpose(glm::inverse(mat3(modelView)));
-		glUniformMatrix3fv(location, 1, GL_FALSE, value_ptr(normalMatrix));
-		CHECK_GL_ERRORS;
+			//-- Set NormMatrix:
+			location = shader.getUniformLocation("NormalMatrix");
+			mat3 normalMatrix = glm::transpose(glm::inverse(mat3(modelView)));
+			glUniformMatrix3fv(location, 1, GL_FALSE, value_ptr(normalMatrix));
+			CHECK_GL_ERRORS;
 
 
-		//-- Set Material values:
-		location = shader.getUniformLocation("material.kd");
-		vec3 kd;
-		kd = node.material.kd;
-		glUniform3fv(location, 1, value_ptr(kd));
-		CHECK_GL_ERRORS;
+			//-- Set Material values:
+			location = shader.getUniformLocation("material.kd");
+			vec3 kd;
+			kd = node.material.kd;
+			glUniform3fv(location, 1, value_ptr(kd));
+			CHECK_GL_ERRORS;
 
-		// enable texture mapping or not
-		location = shader.getUniformLocation("enabletexture");
-		int enable_texture_uni = 0;
-		if (node.m_texture != nullptr){
-			enable_texture_uni = 1;
-			enable_texture(node.m_texture);
-		}
-		glUniform1i(location, enable_texture_uni);
-		CHECK_GL_ERRORS;
-	}
+			// enable texture mapping or not
+			location = shader.getUniformLocation("enabletexture");
+			int enable_texture_uni = 0;
+			if (node.m_texture != nullptr){
+				enable_texture_uni = 1;
+				enable_texture(node.m_texture->texturePtr);
+			}
+			glUniform1i(location, enable_texture_uni);
+			CHECK_GL_ERRORS;
+		}}	else {	// shadow mat
+			//-- Set ModelView matrix:
+			GLint location = shader.getUniformLocation("model");
+			mat4 model = scale_m * node.trans;
+			glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(model));
+			CHECK_GL_ERRORS;
+		}	// if
+	
 	shader.disable();
 
 }
@@ -550,12 +655,8 @@ void GameWindow::draw() {
 
 
 	glEnable( GL_DEPTH_TEST );
-	HumanPlayer::get_instance()->get_root_node()->accept(*this, scale(vec3(HumanPlayer::get_instance()->get_GameObject()->get_scale())));
-	AI::get_instance()->get_root_node()->accept(*this, scale(vec3(AI::get_instance()->get_GameObject()->get_scale())));
-	renderParticles(*ParticleAssets::fetch_system("dirt"));
-	renderParticles(*ParticleAssets::fetch_system("lightning"));
-	renderParticles(*ParticleAssets::fetch_system("electornics"));
-	m_scene->render(*this);
+	shadow_processing();
+	scene_processing();
 	renderSkyBox();
 	glDisable( GL_DEPTH_TEST );
 
@@ -617,15 +718,15 @@ void GameWindow::renderParticles(const ParticleSystem& ps){
 	for (auto& p : ps.m_pool){
 		if (p.m_active){
 			geo->trans = glm::translate(p.m_position) * calc_rotation_mat(p.m_rot) * scale(vec3(p.m_size, p.m_size, p.m_size)) * geo->originalM;
-			updateShaderUniforms(m_shader, *geo, m_view);
+			updateShaderUniformsScene(*m_curr_shader_ptr, *geo, m_view, mat4(), m_curr_shader_ptr == &m_shader_shadow_depth);
 
 			// Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
 			BatchInfo batchInfo = m_batchInfoMap[geo->meshId];
 
 			//-- Now render the mesh:
-			m_shader.enable();
+			m_curr_shader_ptr->enable();
 			glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-			m_shader.disable();
+			m_curr_shader_ptr->disable();
 		}	// if
 	}	// for
 
@@ -660,16 +761,17 @@ void GameWindow::renderSceneGraph(const SceneNode & root, const mat4& scale_m) {
 
 		const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
 
-		updateShaderUniforms(m_shader, *geometryNode, m_view, scale_m);
+
+		updateShaderUniformsScene(*m_curr_shader_ptr, *geometryNode, m_view, scale_m, m_curr_shader_ptr == &m_shader_shadow_depth);
 
 
 		// Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
 		BatchInfo batchInfo = m_batchInfoMap[geometryNode->meshId];
 
 		//-- Now render the mesh:
-		m_shader.enable();
+		m_curr_shader_ptr->enable();
 		glDrawArrays(GL_TRIANGLES, batchInfo.startIndex, batchInfo.numIndices);
-		m_shader.disable();
+		m_curr_shader_ptr->disable();
 	}
 
 	glBindVertexArray(0);

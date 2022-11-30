@@ -4,6 +4,7 @@
 #include "debug.hpp"
 #include "PlayerAI.hpp"
 #include "Scene.hpp"
+#include "GameWindow.hpp"
 using namespace std;
 using namespace glm;
 
@@ -112,6 +113,7 @@ void Pikachu::attack(const std::string& name, GameObject* target){
 void Pikachu::die(){
     m_node->scale(vec3(1, 0.1, 1));
     m_node->translate(vec3(0, -5.0f, 0));
+    GameWindow::play_music(SOUND_FAILURE);
 }
 
 Pikachu::~Pikachu(){
@@ -151,6 +153,7 @@ void Snorlax::die(){
     m_status = Status::Dead;
     m_target_pos = m_pos;
     m_tmp_pos = m_pos;
+    GameWindow::play_music(SOUND_VICTORY);
 }
 
 void Snorlax::update(){

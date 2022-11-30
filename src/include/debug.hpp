@@ -12,9 +12,9 @@
 
 #include <stdio.h>
 #include <iostream>
-#define DLOG(fmt, ...)                                                         \
+#define DLOG(fmt, ...)                                                     \
     do {                                                                       \
-        fprintf(stderr, "DEBUG %lu [%s:%d] ", pthread_self(), __FILE__,         \
+        fprintf(stderr, "DEBUG  [%s:%d] ",__FILE__,         \
                 __LINE__);                                                     \
         fprintf(stderr, fmt, ##__VA_ARGS__);                                   \
         fprintf(stderr, "\n");                                                 \

@@ -24,12 +24,12 @@ lightning:set_particle()
 tile_grass = gr.mesh('plane_text', 'tile_grass')
 tile_grass:scale(10,10,10)
 tile_grass:rotate('y', 180)
-tile_grass:translate(-80, 0, -50)
+tile_grass:translate(-80, 0, -70)
 tile_grass:set_material(green)
 tile_grass:set_texture(GrassTexture)
 
 for i = 0, 15 do
-    for j = 0, 6 do
+    for j = 0, 10 do
         tile = gr.node('tile' .. tostring(i) .. tostring(j))
         tile:add_child_deepcpy(tile_grass)
         tile:translate(i*10, 0, j*10)

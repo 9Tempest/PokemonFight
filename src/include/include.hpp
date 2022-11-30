@@ -8,6 +8,7 @@
 #include <glm/ext.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include "cs488-framework/MathUtils.hpp"
+#include "cs488-framework/OpenGLImport.hpp"
 
 
 #define GROUND -7

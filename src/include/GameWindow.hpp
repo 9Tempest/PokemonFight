@@ -15,6 +15,8 @@
 #include <iostream>
 #include "texture.hpp"
 #include "Scene.hpp"
+#include "sound.hpp"
+#include "shadow.hpp"
 enum OptionModel {
 	ModelPosition,
 	ModelJoints,
@@ -22,10 +24,7 @@ enum OptionModel {
 	ModelNone,
 };
 
-struct LightSource {
-	glm::vec3 position;
-	glm::vec3 rgbIntensity;
-};
+
 
 const float SHAKE_STRENGTH = 2.0f;
 
@@ -75,6 +74,7 @@ protected:
 	void init_skybox_vao();
 	void initPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
+	void uploadShadowMapUniforms();
 	void renderSceneGraph(const SceneNode &node , const glm::mat4& scale_m = glm::mat4());
 	void renderParticles(const ParticleSystem& ps);
 	void renderSkyBox();
@@ -94,6 +94,7 @@ protected:
 	//-- GL resources for mesh geometry data:
 	GLuint m_vao_meshData;
 	GLuint m_vbo_vertexPositions;
+	GLuint m_positionAttribLocationShadow;
 	GLuint m_vbo_vertexNormals;
 	GLuint m_vbo_vertexUVs;
 	GLint m_positionAttribLocation;
@@ -101,6 +102,17 @@ protected:
 	GLint m_uvAttribLocation;
 	ShaderProgram m_shader;
 	ShaderProgram m_shader_skybox;
+	ShaderProgram m_shader_shadow_depth;
+
+	ShaderProgram* m_curr_shader_ptr = nullptr;
+
+	void set_shader(ShaderProgram& prog){
+		m_curr_shader_ptr = &prog;
+	}
+
+	void shadow_processing();
+	void scene_processing();
+	void render_scene(ShaderProgram& prog);
 
 	// skybox
 	GLuint m_vao_skybox;
@@ -133,8 +145,13 @@ protected:
 	virtual void visit(SceneNode* node, const glm::mat4& scale_m = glm::mat4()) override{
 		renderSceneGraph(*node, scale_m);
 	}
-
+	// Shadow mapping
+	ShadowMap m_shadowmap;
+	// background music
+	static irrklang::ISound* m_sound;
 	
+	public:
+	static void play_music(const std::string& music_name, bool is_loop = false);
 
 
 	
