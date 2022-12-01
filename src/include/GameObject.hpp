@@ -98,9 +98,8 @@ class GameObject : public Animator{
     */
     virtual void attack(const std::string& name, GameObject* target) = 0;
     virtual void die() = 0;
-    virtual void under_attack(AttackUnit* attackUnit) {
-      assert(attackUnit != nullptr);
-      m_hp -= attackUnit->get_damage();
+    virtual void under_attack(float damage) {
+      m_hp -= damage;
       if (m_hp <= 0){
         m_hp = 0.0f;
         die();
@@ -131,7 +130,7 @@ class Snorlax: public GameObject{
 
   public:
     float get_radius() const override { return m_radius; }
-    Snorlax(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Snorlax", 50, node), m_radius(8.0f){
+    Snorlax(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Snorlax", 250, node), m_radius(8.0f){
 
     }
     ~Snorlax();

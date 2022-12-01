@@ -35,8 +35,12 @@ public:
 	// camera shake
 	static void cameraShake(float duration, float force = SHAKE_STRENGTH){
 		m_view_original = m_view;
-		m_shake_time = duration;
-		m_shake_remaining_time = duration;
+		if (duration > m_shake_time){
+			m_shake_time = duration;
+		}
+		if (duration > m_shake_remaining_time){
+			m_shake_remaining_time = duration;
+		}
 		m_shake_force = force;
 		m_shake_remaining_force = force;
 	}

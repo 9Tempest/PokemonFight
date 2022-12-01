@@ -2,12 +2,17 @@
 #include "debug.hpp"
 #include "random.hpp"
 #include "GeometryNode.hpp"
-
+#include "GameObject.hpp"
+#include "PlayerAI.hpp"
+#include "GameWindow.hpp"
+#include "AttackUnit.hpp"
 using namespace std;
 using namespace glm;
 
 std::unordered_map<std::string, GeometryNode*> ParticleAssets::assets_mesh = std::unordered_map<std::string, GeometryNode*>();
 std::unordered_map<std::string, ParticleSystem> ParticleAssets::assets_systems = std::unordered_map<std::string, ParticleSystem>();
+
+
 
 void ParticleAssets::add_asset(GeometryNode* mesh){
     assets_mesh[mesh->m_name] = mesh;
@@ -36,14 +41,36 @@ ParticleSystem::ParticleSystem(const ParticleSystem& other)
 
     }
 
+static inline bool is_hit(ParticleSystem::Particle& p, GameObject* o){
+    bool res = in_circle(p.m_position, o->get_pos(), p.m_size*2);
+    return res;
+}
 
-void ParticleSystem::Particle::update_on(float time_diff, float gravity){
+float const DAMAGE_METE = 10.0f;
+
+void meteorite_destroy(ParticleSystem::Particle& p, GameObject* o){
+    GameWindow::cameraShake(1.0f, 1.0f);
+    dirt_flying_effect(p.m_size, p.m_position, 10);
+    if (is_hit(p, o)){
+        o->under_attack(DAMAGE_METE);
+    }
+    SoundEngine::play3D(SOUND_SLAM, p.m_position, false, 1.0f);
+
+}
+
+
+void ParticleSystem::Particle::update_on(float time_diff, float gravity, Particle::DestoryFunc func, bool destory_when_touch_ground){
     assert(time_diff >= 0);
     if (m_position.y > GROUND || m_vel.y >= 0){
         m_position += time_diff * m_vel;
         m_vel.y -= time_diff * gravity;
         m_rot += time_diff * m_rot_vel;
        
+    }   else if (destory_when_touch_ground){
+        if (func!=nullptr){
+            func(*this, HumanPlayer::get_instance()->get_GameObject());
+        }
+        m_active = false;
     }
     
     if (m_lifetime <= 0){
@@ -54,13 +81,13 @@ void ParticleSystem::Particle::update_on(float time_diff, float gravity){
     m_lifetime -= time_diff;
 }
 
-void ParticleSystem::update(bool gravity){
+void ParticleSystem::update(bool gravity, Particle::DestoryFunc func, bool destory_when_touch_ground){
     time_stamp curr_time_update = get_curr_time();
     float time_diff = get_time_diff(m_curr_ts, curr_time_update);
     //cout << "time diff is " << time_diff << endl;
     for (auto& p : m_pool){
         if (p.m_active){
-            p.update_on(time_diff, gravity?GRAVITY:0.0f);
+            p.update_on(time_diff, gravity?p.gravity:0.0f, func, destory_when_touch_ground);
             // .. update
         }   // if
     }   // for
@@ -83,10 +110,13 @@ void ParticleSystem::Emit(const ParticleProps& pp, bool is_random){
     // rot
     particle.m_rot = pp.m_rot;
     particle.m_size = pp.size;
+    particle.gravity = pp.gravity;
 
     if (is_random){
         // size
-        particle.m_size = Random::FloatPositive() * 2;
+        particle.m_size+= Random::FloatPositive() * 2;
+
+        // vel
         particle.m_vel.x += Random::Float();
         particle.m_vel.z += Random::Float();
 
@@ -99,9 +129,27 @@ void ParticleSystem::Emit(const ParticleProps& pp, bool is_random){
 
 }
 
+void generate_meteorite(){
+    GameWindow::cameraShake(10.0f, 0.5f);
+    int num = Random::Int(10,20);
+    ParticleProps pps;
+    for (int i = 0; i < num; i++){
+        float positionX = Random::Float() * 50;
+        float positionZ = -Random::FloatPositive() * 50;
+        float y_var = Random::Float() * 100;
+        vec3 ppos = vec3(positionX, 150.0f + y_var, positionZ);
+        pps = {ppos, vec3(0,0,0), 10.0f, vec3(0,0,0), 2.0f, 4.0f};
+        ParticleAssets::fetch_system("meteorite")->Emit(pps);
+    }
+    // emit one mete on top of pikachu
+    vec3 target_pos =  HumanPlayer::get_instance()->get_GameObject()->get_pos();
+    pps.position = target_pos;
+    pps.position.y = 100.0f;
+    ParticleAssets::fetch_system("meteorite")->Emit(pps, true);
+}
 
-void dirt_flying_effect(float radius, const glm::vec3& pos){
-    int num_pts = Random::Int(30,50);
+void dirt_flying_effect(float radius, const glm::vec3& pos, int base_num){
+    int num_pts = Random::Int(base_num,int(base_num*1.5f));
     radius *= 1.5;
     float k = 2 * PI / float(num_pts);
     for(int i_phi = 0; i_phi < num_pts; ++i_phi){
@@ -129,7 +177,7 @@ void lightning_effect(const glm::vec3& pos, const glm::vec3& dir){
         vec3 rot = vec3(INIT_ROT_ANGLE/2 * Random::Float(), INIT_ROT_ANGLE/2* Random::Float(), INIT_ROT_ANGLE/2* Random::Float());
         rot.y = rot_angle;
         //cout << "rot angle is " << rot << endl;
-        ParticleProps pps{ppos, vec3(0), 0.1f, rot};
+        ParticleProps pps{ppos, vec3(0), 0.1f, rot, 1.0f};
         ParticleAssets::fetch_system("lightning")->Emit(pps, false);
     }
 
@@ -154,14 +202,14 @@ void lightning_effect(const glm::vec3& pos, const glm::vec3& dir){
         ppos += vec3(Random::FloatPositive() * 2,Random::FloatPositive() * 2, Random::FloatPositive() * 2);
         vec3 rot = vec3(INIT_ROT_ANGLE * Random::FloatPositive(), INIT_ROT_ANGLE* Random::FloatPositive(), INIT_ROT_ANGLE* Random::FloatPositive());
         rot.y = rot_angle;
-        ParticleProps pps{ppos, vec3(0), 0.1f, rot};
+        ParticleProps pps{ppos, vec3(0), 0.1f, rot, 1.0f};
         ParticleAssets::fetch_system("electornics")->Emit(pps, false);
 
         rot = vec3(-INIT_ROT_ANGLE * Random::FloatPositive(), -INIT_ROT_ANGLE* Random::FloatPositive(), -INIT_ROT_ANGLE* Random::FloatPositive());
         rot.y = rot_angle;
         ppos = pos + i * dir/9;
         ppos -= vec3(Random::FloatPositive() * 2,Random::FloatPositive() * 2, Random::FloatPositive() * 2);
-        pps = ParticleProps{ppos, vec3(0), 0.1f, rot};
+        pps = ParticleProps{ppos, vec3(0), 0.1f, rot , 1.0f};
         ParticleAssets::fetch_system("electornics")->Emit(pps, false);
     }
 }

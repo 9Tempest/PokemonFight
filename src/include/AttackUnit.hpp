@@ -4,6 +4,9 @@
 #include "timestamp.hpp"
 #include "sound.hpp"
 
+#define LEFT 0
+#define RIGHT 1
+
 class GameObject;
 
 struct AttackUnitArgs{
@@ -49,8 +52,9 @@ class AttackUnit{
 class Discharge : public AttackUnit{
     glm::vec3 m_dir;
     float remaining_particle_effect_time = 0.095f;
+    int m_ori;
     public:
-        Discharge(GameObject*attacker, GameObject*attackee);
+        Discharge(GameObject*attacker, GameObject*attackee, int ori);
         bool hit() override;
         void update(const time_stamp& curr_ts) override;
 
@@ -69,4 +73,6 @@ class BodySlam : public AttackUnit{
 
 };
 
+
+bool in_circle(const glm::vec3& m_pos, const glm::vec3& target_pos, double radius);
 

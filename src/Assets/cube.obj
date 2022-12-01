@@ -19,6 +19,9 @@ vn 0.0 -0.0 1.0
 vn 0.0 -1.0 0.0
 vn 0.0 1.0 0.0
 
+# Enable Smooth Shading
+s 1
+
 # Triangle face indices: vertex//normal
 # Indices start at 1
 f 5//1 6//1 2//1

@@ -4,10 +4,21 @@ Dirt = gr.material({0.6078431, 0.4627451, 0.3254902}, {0.2, 0.2, 0.2}, 10)
 DirtTexture = gr.texture("dirt.png")
 GrassTexture = gr.texture("grass.png")
 FenceTexture = gr.texture("fence.png")
+
 -- set skybox
 rootnode = gr.node("root")
 
 skybox = gr.skybox("skybox3.png")
+
+
+
+
+MeteoriteTexture = gr.texture("meteorite.png")
+meteorite = gr.mesh("sphere_text", "meteorite")
+meteorite:set_texture(MeteoriteTexture)
+meteorite:set_material(white)
+meteorite:set_particle()
+meteorite:scale(1,1,1)
 
 
 

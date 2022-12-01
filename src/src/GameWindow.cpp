@@ -33,7 +33,7 @@ void GameWindow::play_music(const std::string& music_name, bool is_loop){
 	if (m_sound != nullptr){
 		m_sound->stop();
 	}
-	m_sound = SoundEngine::play2D(music_name, is_loop);
+	m_sound = SoundEngine::play2D(music_name, is_loop, 0.1f);
 	assert(m_sound != nullptr);
 	std::cout << "playing " << music_name << std::endl;
 	m_sound->setVolume(0.1f);
@@ -143,6 +143,7 @@ void GameWindow::init()
 	// class.
 	unique_ptr<MeshConsolidator> meshConsolidator (new MeshConsolidator{
 			getAssetFilePath("cube.obj"),
+			getAssetFilePath("buckyball.obj"),
 			getAssetFilePath("sphere.obj"),
 			getAssetFilePath("suzanne.obj"),
 			getAssetFilePath("mcube.obj"),
@@ -151,6 +152,8 @@ void GameWindow::init()
 			getAssetFilePath("surtorus.obj"),
 			getAssetFilePath("cube_text.obj"),
 			getAssetFilePath("plane_text.obj"),
+			getAssetFilePath("sphere_text.obj")
+			
 	});
 
 
@@ -253,6 +256,7 @@ void GameWindow::render_scene(ShaderProgram& prog){
 	renderParticles(*ParticleAssets::fetch_system("dirt"));
 	renderParticles(*ParticleAssets::fetch_system("lightning"));
 	renderParticles(*ParticleAssets::fetch_system("electornics"));
+	renderParticles(*ParticleAssets::fetch_system("meteorite"));
 	m_scene->render(*this);
 
 	m_curr_shader_ptr = nullptr;
@@ -400,7 +404,7 @@ void GameWindow::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void GameWindow::initLightSources() {
 	// World-space position
-	m_light.position = vec3(1.0f, 10.0f, 10.0f);
+	m_light.position = vec3(3.0f, 10.0f, 10.0f);
 	m_light.rgbIntensity = vec3(1.0f,1.0f, 1.0f); // light
 }
 
@@ -485,7 +489,9 @@ void GameWindow::processCameraShake(){
 	// if end, recovery m_view
 	if (m_shake_remaining_time <= 0.0f){
 		m_shake_remaining_time = 0.0f;
+		m_shake_time = 0.0f;
 		m_view = m_view_original;
+		return;
 	}
 	m_shake_remaining_force = m_shake_force * (m_shake_remaining_time / m_shake_time);
 	vec3 transl = m_shake_remaining_force * vec3(Random::Float(), Random::Float(), Random::Float());
@@ -505,23 +511,11 @@ void GameWindow::appLogic()
 		AI::get_instance()->get_GameObject()->attack("BodySlam", HumanPlayer::get_instance()->get_GameObject());
 	}
 
-
-	// Place per frame, application logic here ...
-	if (m_backface && m_frontface){
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT_AND_BACK);
-	}	else if (m_backface){
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-	}	else if (m_frontface){
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
-	}	else {
-		glDisable(GL_CULL_FACE);
-	}
+	glCullFace(GL_BACK);
 	HumanPlayer::get_instance()->get_GameObject()->update();
 	AI::get_instance()->get_GameObject()->update();
 	ParticleAssets::fetch_system("dirt")->update();
+	ParticleAssets::fetch_system("meteorite")->update(true, meteorite_destroy, true);
 	ParticleAssets::fetch_system("lightning")->update(false);
 	ParticleAssets::fetch_system("electornics")->update(false);
 	processCameraShake();
@@ -573,7 +567,8 @@ static inline void enable_texture(GLuint texturePtr, uint id = 0){
 }
 
 void GameWindow::shadow_processing(){
-	glViewport(0, 0, 1212, 1212);
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
     glBindFramebuffer(GL_FRAMEBUFFER, m_shadowmap.depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
 			render_scene(m_shader_shadow_depth);
@@ -865,10 +860,6 @@ bool GameWindow::keyInputEvent (
 			glfwSetWindowShouldClose(m_window, GL_TRUE);
 			eventHandled = true;
 		}
-		if (key == GLFW_KEY_J){
-			set_anim_snorlax("snorlax_bodyslam_stun");
-			eventHandled = true;
-		}
 		if (key == GLFW_KEY_S){
 			if (is_pikachu_idle()){
 				set_anim_pika("pikachu_move");
@@ -902,22 +893,21 @@ bool GameWindow::keyInputEvent (
 			}
 			eventHandled = true;
 		}
-		if (key == GLFW_KEY_O){
-			set_anim_snorlax("snorlax_bodyslam_up");
-			eventHandled = true;
-		}
-		if (key == GLFW_KEY_L){
-			set_anim_snorlax("snorlax_bodyslam_down");
-			eventHandled = true;
-		}
-		if (key == GLFW_KEY_T){
+		if (key == GLFW_KEY_J){
 			if (is_pikachu_idle()){
-				HumanPlayer::get_instance()->get_GameObject()->attack("discharge", AI::get_instance()->get_GameObject());
+				HumanPlayer::get_instance()->get_GameObject()->attack("discharge_right", AI::get_instance()->get_GameObject());
 			}
 			eventHandled = true;
 		}
-		if (key == GLFW_KEY_B){
-			AI::get_instance()->get_GameObject()->attack("BodySlam", HumanPlayer::get_instance()->get_GameObject());
+		if (key == GLFW_KEY_K){
+			if (is_pikachu_idle()){
+				HumanPlayer::get_instance()->get_GameObject()->attack("discharge_left", AI::get_instance()->get_GameObject());
+			}
+			eventHandled = true;
+		}
+		if (key == GLFW_KEY_T){
+			generate_meteorite();
+			eventHandled = true;
 		}
 		
 

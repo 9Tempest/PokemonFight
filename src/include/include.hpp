@@ -11,6 +11,6 @@
 #include "cs488-framework/OpenGLImport.hpp"
 
 
-#define GROUND -7
+#define GROUND -8
 #define GRAVITY 9.8f
 

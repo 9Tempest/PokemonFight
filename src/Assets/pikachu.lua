@@ -24,6 +24,9 @@ rootnode:add_child(turso)
 turso:set_material(yellow2)
 turso:scale(1.3, 1.7, 1)
 
+
+
+
 -- construct neck and head
 neck = gr.joint("neck", {0,0, 0}, {-60, 0, 60})
 turso:add_child(neck)
@@ -329,6 +332,8 @@ tail_joint:translate(0, -2, -1.8)
 
 -- rootnode:rotate('y', 70)
 -- rootnode:rotate('z', -70)
+
+
 rootnode:translate(10, -3.3, -10.0)
 
 return rootnode

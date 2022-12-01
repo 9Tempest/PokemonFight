@@ -5,6 +5,7 @@
 #include "PlayerAI.hpp"
 #include "Scene.hpp"
 #include "GameWindow.hpp"
+#include "random.hpp"
 using namespace std;
 using namespace glm;
 
@@ -106,7 +107,15 @@ void Pikachu::attack(const std::string& name, GameObject* target){
     DLOG("Pikachu %s attack enemy %s", m_name.c_str(), target->get_name().c_str());
     // add details here
     m_status = Status::Attacking;
-    m_attacku = new Discharge(this, target);
+    if (name == "discharge_left"){
+         m_attacku = new Discharge(this, target, LEFT);
+    }   else if (name == "discharge_right"){
+        m_attacku = new Discharge(this, target, RIGHT);
+    }   else {
+        DLOG("No such attack name! aborted!");
+        abort();
+    }
+   
     return;
 }
 
@@ -128,7 +137,16 @@ void Snorlax::attack(const std::string& name, GameObject* target){
     DLOG("Snorlax %s attack enemy %s", m_name.c_str(), target->get_name().c_str());
     // add details here
     m_status = Status::Attacking;
-    m_attacku = new BodySlam(this, HumanPlayer::get_instance()->get_GameObject());
+    bool decision_bodyslam = Random::Float() >= 0.0f;
+    if (decision_bodyslam){
+        m_attacku = new BodySlam(this, HumanPlayer::get_instance()->get_GameObject());
+    }   else {
+        Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("snorlax_meteorite_fall");
+        assert(ani_ptr != nullptr);
+        do_animation(*ani_ptr);
+        generate_meteorite();
+    }
+    
     return;
 }
 
