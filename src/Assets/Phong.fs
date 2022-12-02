@@ -124,6 +124,6 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
 }
 
 void main() {
-    fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
-	
+    vec4 color = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+    fragColour = color;
 }

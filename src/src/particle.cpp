@@ -49,7 +49,7 @@ static inline bool is_hit(ParticleSystem::Particle& p, GameObject* o){
 float const DAMAGE_METE = 10.0f;
 
 void meteorite_destroy(ParticleSystem::Particle& p, GameObject* o){
-    GameWindow::cameraShake(1.0f, 1.0f);
+    GameWindow::cameraShake(1.0f, 2.0f);
     dirt_flying_effect(p.m_size, p.m_position, 10);
     if (is_hit(p, o)){
         o->under_attack(DAMAGE_METE);

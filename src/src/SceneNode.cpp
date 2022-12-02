@@ -13,6 +13,7 @@ using namespace std;
 #include <glm/gtx/io.hpp>
 #include "GeometryNode.hpp"
 #include "JointNode.hpp"
+#include "Scene.hpp"
 using namespace glm;
 
 
@@ -281,6 +282,17 @@ void SceneNode::applyRotMat(const glm::mat4& rot, const glm::mat4& recoveryM){
 	rotationAndTransl = R * rotationAndTransl;
 	for (auto child : children){
 		child->applyRotMat(rot, recoveryM);
+	}
+}
+
+
+void SceneNode::accept(Visitor& p, bool is_grass){
+
+	p.visit(this, is_grass);
+	
+	for (auto child : children){
+		if (child != Scene::grass_node)
+			child->accept(p, is_grass);
 	}
 }
 

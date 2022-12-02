@@ -79,13 +79,18 @@ protected:
 	void initPerspectiveMatrix();
 	void uploadCommonSceneUniforms();
 	void uploadShadowMapUniforms();
-	void renderSceneGraph(const SceneNode &node , const glm::mat4& scale_m = glm::mat4());
+	void renderSceneGraph(const SceneNode &node);
 	void renderParticles(const ParticleSystem& ps);
 	void renderSkyBox();
+	void setup_grass_shader();
+	void uploadCommonGrassUniforms();
+	void renderGrassMain();
+	void setup_grass_vao();
 
 	void processCameraShake();
 
 	glm::mat4 m_perpsective;
+	glm::vec3 m_camera_pos = glm::vec3(0.0f, 0.0f, 20.0f);
 	static glm::mat4 m_view;
 	static glm::mat4 m_view_original;
 	static float m_shake_time;
@@ -107,6 +112,7 @@ protected:
 	ShaderProgram m_shader;
 	ShaderProgram m_shader_skybox;
 	ShaderProgram m_shader_shadow_depth;
+	ShaderProgram m_shader_grass;
 
 	ShaderProgram* m_curr_shader_ptr = nullptr;
 
@@ -146,8 +152,10 @@ protected:
 	Scene* m_scene;
 
 	// recursive render
-	virtual void visit(SceneNode* node, const glm::mat4& scale_m = glm::mat4()) override{
-		renderSceneGraph(*node, scale_m);
+	virtual void visit(SceneNode* node, bool is_grass = false) override{
+
+		renderSceneGraph(*node);
+
 	}
 	// Shadow mapping
 	ShadowMap m_shadowmap;
@@ -155,6 +163,10 @@ protected:
 	static irrklang::ISound* m_sound;
 	// tool shading
 	bool m_enableToonShading = false;
+
+	// grasses
+	GLuint m_grass_vao, m_grass_vbo;
+	std::vector<glm::vec3> m_grass_positions;
 	public:
 	static void play_music(const std::string& music_name, bool is_loop = false);
 

@@ -48,6 +48,13 @@ static inline bool is_snorlax_idle(){
 
 ISound* GameWindow::m_sound = nullptr;
 
+
+static inline void enable_texture(GLuint texturePtr, uint id = 0){
+	glActiveTexture(GL_TEXTURE0 + id);
+    glBindTexture(GL_TEXTURE_2D, texturePtr);
+
+}
+
 //----------------------------------------------------------------------------------------
 // Constructor
 GameWindow::GameWindow(const vector<string> & luaSceneFile)
@@ -194,6 +201,11 @@ void GameWindow::init()
 
 	play_music(SOUND_BACKGROUND_MUSIC, true);
 	//SoundEngine::play2D(SOUND_BACKGROUND_MUSIC, true);
+	// set grass node
+	m_scene->set_grass_node();
+	
+	setup_grass_shader();
+	setup_grass_vao();
 }
 
 void GameWindow::setup_player_AI(){
@@ -251,8 +263,8 @@ std::shared_ptr<SceneNode> GameWindow::processLuaSceneFile(const std::string & f
 void GameWindow::render_scene(ShaderProgram& prog){
 	set_shader(prog);
 
-	HumanPlayer::get_instance()->get_root_node()->accept(*this, scale(vec3(HumanPlayer::get_instance()->get_GameObject()->get_scale())));
-	AI::get_instance()->get_root_node()->accept(*this, scale(vec3(AI::get_instance()->get_GameObject()->get_scale())));
+	HumanPlayer::get_instance()->get_root_node()->accept(*this);
+	AI::get_instance()->get_root_node()->accept(*this);
 	renderParticles(*ParticleAssets::fetch_system("dirt"));
 	renderParticles(*ParticleAssets::fetch_system("lightning"));
 	renderParticles(*ParticleAssets::fetch_system("electornics"));
@@ -282,6 +294,13 @@ void GameWindow::createShaderProgram()
 	m_shader_shadow_depth.attachVertexShader( getAssetFilePath("shadow_depth.vs").c_str() );
 	m_shader_shadow_depth.attachFragmentShader( getAssetFilePath("shadow_depth.fs").c_str() );
 	m_shader_shadow_depth.link();
+
+	// grass shader
+	m_shader_grass.generateProgramObject();
+	m_shader_grass.attachVertexShader( getAssetFilePath("grass.vs").c_str() );
+	m_shader_grass.attachGeometryShader( getAssetFilePath("grass.geo").c_str() );
+	m_shader_grass.attachFragmentShader( getAssetFilePath("grass.fs").c_str() );
+	m_shader_grass.link();
 }
 
 //----------------------------------------------------------------------------------------
@@ -397,7 +416,7 @@ void GameWindow::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void GameWindow::initViewMatrix() {
-	m_view = glm::lookAt(vec3(0.0f, 0.0f, 20.0f), vec3(0.0f, 0.0f, -1.0f),
+	m_view = glm::lookAt(m_camera_pos, vec3(0.0f, 0.0f, -1.0f),
 			vec3(0.0f, 1.0f, 0.0f));
 }
 
@@ -420,6 +439,118 @@ void GameWindow::uploadShadowMapUniforms() {
 
 	m_shader_shadow_depth.disable();
 }
+
+
+void GameWindow::setup_grass_shader(){
+	m_shader_grass.enable();
+
+	{
+		// set location for grass texture
+		GLint location = m_shader_grass.getUniformLocation("u_textgrass");
+		glUniform1i(location, 0);
+		CHECK_GL_ERRORS;
+	}
+	{
+		// set location for wind map
+		GLint location = m_shader_grass.getUniformLocation("u_wind");
+		glUniform1i(location, 1);
+		CHECK_GL_ERRORS;
+	}
+
+	{
+		// perspective
+		GLint location = m_shader_grass.getUniformLocation("u_projection");
+		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
+		CHECK_GL_ERRORS;
+	}
+
+	m_shader_grass.disable();
+}
+
+static void generate_grasses(float x_pos, float z_pos, vector<vec3>& grass_positions){
+	for(float x = -10.0f; x < 10.0f; x+=0.5f)
+        for(float z = -5.0f; z < 5.0f; z+=0.5f)
+        {
+            int randNumberX = rand() % 10 + 1;
+            int randNumberZ = rand() % 10 + 1;
+            grass_positions.push_back(glm::vec3(x_pos+x+(float)randNumberX, GROUND, z_pos + z+(float)randNumberZ));
+        }
+}
+
+
+void GameWindow::setup_grass_vao(){
+	
+	// generate 10-15 grass cluster
+	int random_num = Random::Int(10, 15);
+	cout << " random num is " << random_num << endl;
+	for (int i = 0; i < random_num; i++){
+		float x_pos;
+		float z_pos;
+		// carefully generate zpos to circumvent mud road
+		if (i < random_num / 5){
+			x_pos = Random::Float() * 20;
+			z_pos = -Random::FloatPositive() * 15;
+		}	else {
+			x_pos = Random::Float() * 100;
+			z_pos = - 40 - Random::FloatPositive() * 20;
+		}
+		cout << "x pos is " << x_pos << " z pos is " << z_pos << endl;
+		generate_grasses(x_pos, z_pos, m_grass_positions);
+	}
+	cout << " grass size is " << m_grass_positions.size() << endl;
+	glGenVertexArrays(1, &m_grass_vao);
+    glGenBuffers(1, &m_grass_vbo);
+    glBindVertexArray(m_grass_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_grass_vbo);
+    glBufferData(GL_ARRAY_BUFFER, m_grass_positions.size() * sizeof(glm::vec3), m_grass_positions.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+}
+
+void GameWindow::renderGrassMain(){
+	m_shader_grass.enable();
+
+	 // bind textures
+	glActiveTexture(GL_TEXTURE0);
+	Texture* text = TextureAssets::get_asset("grass_texture.png");
+	assert(text != nullptr);
+	enable_texture(text->texturePtr, 0);
+	CHECK_GL_ERRORS;
+	
+	text = TextureAssets::get_asset("flowmap.png");
+	assert(text != nullptr);
+	enable_texture(text->texturePtr, 1);
+	CHECK_GL_ERRORS;
+
+	// update view
+	{
+		// set location for view
+		GLint location = m_shader_grass.getUniformLocation("u_view");
+		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_view));
+		CHECK_GL_ERRORS;
+	}
+	{
+		// set location for camera pos
+		GLint location = m_shader_grass.getUniformLocation("u_cameraPosition");
+		glUniform3fv(location, 1, value_ptr(m_camera_pos));
+		CHECK_GL_ERRORS;
+	}
+	{
+		// set time
+		GLint location = m_shader_grass.getUniformLocation("u_time");
+		glUniform1f(location, glfwGetTime());
+		CHECK_GL_ERRORS;
+	}
+
+	glBindVertexArray(m_grass_vao);
+    glDrawArrays(GL_POINTS, 0, m_grass_positions.size());
+
+	m_shader_grass.disable();
+}
+
 
 
 //----------------------------------------------------------------------------------------
@@ -567,11 +698,7 @@ void GameWindow::guiLogic()
 	
 }
 
-static inline void enable_texture(GLuint texturePtr, uint id = 0){
-	glActiveTexture(GL_TEXTURE0 + id);
-    glBindTexture(GL_TEXTURE_2D, texturePtr);
 
-}
 
 void GameWindow::shadow_processing(){
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -596,7 +723,6 @@ static void updateShaderUniformsScene(
 		const ShaderProgram & shader,
 		const GeometryNode & node,
 		const glm::mat4 & viewMatrix,
-		const glm::mat4 & scale_m = mat4(),
 		bool is_shadow=false
 ) {
 
@@ -605,8 +731,8 @@ static void updateShaderUniformsScene(
 		{
 			//-- Set ModelView matrix:
 			GLint location = shader.getUniformLocation("Model");
-			mat4 modelView = viewMatrix * scale_m * node.trans;
-			glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(scale_m * node.trans));
+			mat4 modelView = viewMatrix *  node.trans;
+			glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(node.trans));
 			CHECK_GL_ERRORS;
 			
 			// - Set View matrix:
@@ -640,7 +766,7 @@ static void updateShaderUniformsScene(
 		}}	else {	// shadow mat
 			//-- Set ModelView matrix:
 			GLint location = shader.getUniformLocation("model");
-			mat4 model = scale_m * node.trans;
+			mat4 model = node.trans;
 			glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(model));
 			CHECK_GL_ERRORS;
 		}	// if
@@ -659,6 +785,7 @@ void GameWindow::draw() {
 	glEnable( GL_DEPTH_TEST );
 	shadow_processing();
 	scene_processing();
+	renderGrassMain();
 	renderSkyBox();
 	glDisable( GL_DEPTH_TEST );
 
@@ -720,7 +847,7 @@ void GameWindow::renderParticles(const ParticleSystem& ps){
 	for (auto& p : ps.m_pool){
 		if (p.m_active){
 			geo->trans = glm::translate(p.m_position) * calc_rotation_mat(p.m_rot) * scale(vec3(p.m_size, p.m_size, p.m_size)) * geo->originalM;
-			updateShaderUniformsScene(*m_curr_shader_ptr, *geo, m_view, mat4(), m_curr_shader_ptr == &m_shader_shadow_depth);
+			updateShaderUniformsScene(*m_curr_shader_ptr, *geo, m_view, m_curr_shader_ptr == &m_shader_shadow_depth);
 
 			// Get the BatchInfo corresponding to the GeometryNode's unique MeshId.
 			BatchInfo batchInfo = m_batchInfoMap[geo->meshId];
@@ -738,7 +865,7 @@ void GameWindow::renderParticles(const ParticleSystem& ps){
 }
 
 //----------------------------------------------------------------------------------------
-void GameWindow::renderSceneGraph(const SceneNode & root, const mat4& scale_m) {
+void GameWindow::renderSceneGraph(const SceneNode & root) {
 
 	// Bind the VAO once here, and reuse for all GeometryNode rendering below.
 	glBindVertexArray(m_vao_meshData);
@@ -764,7 +891,7 @@ void GameWindow::renderSceneGraph(const SceneNode & root, const mat4& scale_m) {
 		const GeometryNode * geometryNode = static_cast<const GeometryNode *>(node);
 
 
-		updateShaderUniformsScene(*m_curr_shader_ptr, *geometryNode, m_view, scale_m, m_curr_shader_ptr == &m_shader_shadow_depth);
+		updateShaderUniformsScene(*m_curr_shader_ptr, *geometryNode, m_view, m_curr_shader_ptr == &m_shader_shadow_depth);
 
 
 		// Get the BatchInfo corresponding to the GeometryNode's unique MeshId.

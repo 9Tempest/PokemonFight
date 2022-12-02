@@ -12,7 +12,7 @@ class SceneNode;
 
 class Visitor{
     public:
-    virtual void visit(SceneNode* node, const glm::mat4& scale_m = glm::mat4()) = 0;
+    virtual void visit(SceneNode* node, bool is_grass = false) = 0;
 };
 
 enum class NodeType {
@@ -90,15 +90,11 @@ public:
 	unsigned int m_nodeId;
 
     // register node
-    virtual void accept(Visitor& p, const glm::mat4& scale_m = glm::mat4()){
-        p.visit(this, scale_m);
-        for (auto child : children){
-            child->accept(p, scale_m);
-        }
-    }
+    virtual void accept(Visitor& p, bool is_grass = false);
 
     // parent ptr for locate joints
     SceneNode* parent = nullptr;
+
 
 
 private:

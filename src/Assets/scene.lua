@@ -4,13 +4,25 @@ Dirt = gr.material({0.6078431, 0.4627451, 0.3254902}, {0.2, 0.2, 0.2}, 10)
 DirtTexture = gr.texture("dirt.png")
 GrassTexture = gr.texture("grass.png")
 FenceTexture = gr.texture("fence.png")
-
+GrassInstanceTexture = gr.texture("grass_texture.png")
+FlowMap = gr.texture("flowmap.png")
 -- set skybox
 rootnode = gr.node("root")
 
 skybox = gr.skybox("skybox3.png")
 
-
+grassInstance =gr.node("grassInstance")
+grass1 = gr.mesh("plane_text", "grass1")
+grass1:rotate('x', -90)
+grass1:rotate('y', 180)
+grass1:set_material(white)
+grass1:set_texture(GrassInstanceTexture)
+grassInstance:add_child(grass1)
+grassInstance:scale(5,5,5)
+grassInstance:translate(0, 10, 0)
+grasses = gr.node("grasses")
+grasses:add_child(grassInstance)
+rootnode:add_child(grasses)
 
 
 MeteoriteTexture = gr.texture("meteorite.png")
