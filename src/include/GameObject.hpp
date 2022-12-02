@@ -130,7 +130,7 @@ class Snorlax: public GameObject{
 
   public:
     float get_radius() const override { return m_radius; }
-    Snorlax(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Snorlax", 250, node), m_radius(8.0f){
+    Snorlax(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Snorlax", 500, node), m_radius(8.0f){
 
     }
     ~Snorlax();

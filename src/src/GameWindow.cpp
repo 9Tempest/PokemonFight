@@ -404,7 +404,7 @@ void GameWindow::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void GameWindow::initLightSources() {
 	// World-space position
-	m_light.position = vec3(3.0f, 10.0f, 10.0f);
+	m_light.position = vec3(3.0f, 30.0f, 10.0f);
 	m_light.rgbIntensity = vec3(1.0f,1.0f, 1.0f); // light
 }
 
@@ -466,8 +466,15 @@ void GameWindow::uploadCommonSceneUniforms() {
 
 		{
 			//-- Set Perpsective matrix uniform for the scene:
-			GLint location = m_shader.getUniformLocation("lightSpaceMatrix");
+			location = m_shader.getUniformLocation("lightSpaceMatrix");
 			glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_shadowmap.lightSpaceMatrix));
+			CHECK_GL_ERRORS;
+		}
+
+		{
+			// --Set Toon shading uniform
+			location = m_shader.getUniformLocation("enableToon");
+			glUniform1i(location, (int)m_enableToonShading);
 			CHECK_GL_ERRORS;
 		}
 
@@ -906,7 +913,7 @@ bool GameWindow::keyInputEvent (
 			eventHandled = true;
 		}
 		if (key == GLFW_KEY_T){
-			generate_meteorite();
+			m_enableToonShading = !m_enableToonShading;
 			eventHandled = true;
 		}
 		

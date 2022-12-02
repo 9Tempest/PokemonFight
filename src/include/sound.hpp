@@ -13,7 +13,7 @@ using namespace irrklang;
 #define SOUND_VICTORY "victory.wav"
 #define SOUND_FAILURE "failure.wav"
 
-#define UNMUTED
+#define MUTED
 
 class SoundEngine{
         static ISoundEngine *engine;

@@ -29,6 +29,6 @@ void ShadowMap::init(LightSource& src){
 
     // calculate light VP
     lightView = glm::lookAt(light->position,  vec3(0.0f),vec3(0.0f, 1.0f, 0.0f));
-    lightProjection = glm::ortho(Scene::XMIN, Scene::XMAX, -20.0f, 100.0f, 0.0f, 150.0f);
+    lightProjection = glm::ortho(Scene::XMIN, Scene::XMAX, -40.0f, 100.0f, 0.0f, 150.0f);
     lightSpaceMatrix = lightProjection * lightView;
 }

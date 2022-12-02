@@ -153,7 +153,8 @@ protected:
 	ShadowMap m_shadowmap;
 	// background music
 	static irrklang::ISound* m_sound;
-	
+	// tool shading
+	bool m_enableToonShading = false;
 	public:
 	static void play_music(const std::string& music_name, bool is_loop = false);
 

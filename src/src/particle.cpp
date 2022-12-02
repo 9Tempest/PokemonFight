@@ -54,7 +54,9 @@ void meteorite_destroy(ParticleSystem::Particle& p, GameObject* o){
     if (is_hit(p, o)){
         o->under_attack(DAMAGE_METE);
     }
+    #ifdef UNMUTED
     SoundEngine::play3D(SOUND_SLAM, p.m_position, false, 1.0f);
+    #endif
 
 }
 

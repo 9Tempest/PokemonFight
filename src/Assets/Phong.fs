@@ -1,6 +1,7 @@
 #version 330 core
 
 uniform bool enabletexture;
+uniform bool enableToon;
 uniform sampler2D texture1;
 uniform sampler2D shadow;
 
@@ -66,6 +67,18 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias)
     return shadow_factor;
 }
 
+vec3 toonMapping(float intensity, vec3 color) {
+    vec3 res;
+    if (intensity > 0.8)
+		res = color;
+	else if (intensity > 0.6)
+		res = 0.8 * color;
+	else if (intensity > 0.3)
+		res = 0.5 * color;
+    else
+		res = 0.25 * color;
+    return res;
+}
 
 vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
 	LightSource light = fs_in.light;
@@ -85,6 +98,10 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
     }   else {
         color = material.kd;
     }
+    // if enable toon shading
+    if (enableToon){
+        color = toonMapping(n_dot_l, color);
+    }
 	diffuse = color * n_dot_l;
 
     vec3 specular = vec3(0.0);
@@ -98,16 +115,15 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
     }
 
     // bias
-    float bias = max(0.05 * (1.0 -n_dot_l), 0.005);  
+    float bias = max(0.05 * (1.0 -n_dot_l), 0.05);  
 
     // calculate shadow
     float shadow_factor = ShadowCalculation(fs_in.FragPosLightSpace, bias);
 
-    return ambientIntensity + ((1.0-shadow_factor) * light.rgbIntensity) * (diffuse + specular);
+    return ambientIntensity + ((1.0-shadow_factor) * light.rgbIntensity) * (diffuse+specular);
 }
 
 void main() {
-    vec4 tmp_color = texture(shadow, TexCoords);
     fragColour = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
 	
 }
