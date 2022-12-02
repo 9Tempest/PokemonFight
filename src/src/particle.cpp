@@ -9,6 +9,7 @@
 using namespace std;
 using namespace glm;
 
+// init global assets
 std::unordered_map<std::string, GeometryNode*> ParticleAssets::assets_mesh = std::unordered_map<std::string, GeometryNode*>();
 std::unordered_map<std::string, ParticleSystem> ParticleAssets::assets_systems = std::unordered_map<std::string, ParticleSystem>();
 
@@ -30,7 +31,7 @@ GeometryNode* ParticleAssets::fetch_mesh(const std::string& name){
 }
 
 
-
+// init 1000 particles pool
 ParticleSystem::ParticleSystem(const string&name) : m_name(name){
     m_curr_ts = get_curr_time();
     m_pool.resize(1000);
@@ -63,23 +64,29 @@ void meteorite_destroy(ParticleSystem::Particle& p, GameObject* o){
 
 void ParticleSystem::Particle::update_on(float time_diff, float gravity, Particle::DestoryFunc func, bool destory_when_touch_ground){
     assert(time_diff >= 0);
+
+    // if position falls on the ground, stop update velocity and position
     if (m_position.y > GROUND || m_vel.y >= 0){
         m_position += time_diff * m_vel;
         m_vel.y -= time_diff * gravity;
         m_rot += time_diff * m_rot_vel;
        
     }   else if (destory_when_touch_ground){
-        if (func!=nullptr){
-            func(*this, HumanPlayer::get_instance()->get_GameObject());
-        }
         m_active = false;
     }
     
+    // if lifetime <= 0, inactive
     if (m_lifetime <= 0){
         m_active = false;
         m_lifetime = 0;
     }   // if
 
+    // invoke destory function after inactive
+    if (!m_active && func!=nullptr){
+        func(*this, HumanPlayer::get_instance()->get_GameObject());
+    }
+
+    // update lifetime
     m_lifetime -= time_diff;
 }
 
@@ -135,6 +142,8 @@ void generate_meteorite(){
     GameWindow::cameraShake(10.0f, 0.5f);
     int num = Random::Int(10,20);
     ParticleProps pps;
+
+    // randomly generate meteorites
     for (int i = 0; i < num; i++){
         float positionX = Random::Float() * 50;
         float positionZ = -Random::FloatPositive() * 50;
@@ -154,6 +163,8 @@ void dirt_flying_effect(float radius, const glm::vec3& pos, int base_num){
     int num_pts = Random::Int(base_num,int(base_num*1.5f));
     radius *= 1.5;
     float k = 2 * PI / float(num_pts);
+
+    // generate dirt on top of a circle
     for(int i_phi = 0; i_phi < num_pts; ++i_phi){
         float const phi = i_phi * k;
         float positionX = radius * cos( phi );
@@ -170,10 +181,13 @@ const int NUM_LIGHTNING_PTS = 10;
 void lightning_effect(const glm::vec3& pos, const glm::vec3& dir){
     int num_pts = NUM_LIGHTNING_PTS;
     float rot_angle = 0.0f;
+
+    // change rotation if the orientation is face-front or back
     if (dir.z != 0.0f){
         rot_angle -= 90;
     }
     
+    // generate main body of lightning
     for (int i = 0; i < num_pts; i++){
         vec3 ppos = pos + i * dir;
         vec3 rot = vec3(INIT_ROT_ANGLE/2 * Random::Float(), INIT_ROT_ANGLE/2* Random::Float(), INIT_ROT_ANGLE/2* Random::Float());
@@ -183,6 +197,7 @@ void lightning_effect(const glm::vec3& pos, const glm::vec3& dir){
         ParticleAssets::fetch_system("lightning")->Emit(pps, false);
     }
 
+    // generate top and botton part of lightning
     for (int i = 0; i < num_pts; i++){
         vec3 ppos = pos + i * dir;
         ppos.y += Random::FloatPositive();
@@ -199,6 +214,7 @@ void lightning_effect(const glm::vec3& pos, const glm::vec3& dir){
         ParticleAssets::fetch_system("lightning")->Emit(pps, false);
     }
 
+    // generate electorns
     for (int i = 0; i < num_pts*10; i++){
         vec3 ppos = pos + i * dir/9;
         ppos += vec3(Random::FloatPositive() * 2,Random::FloatPositive() * 2, Random::FloatPositive() * 2);

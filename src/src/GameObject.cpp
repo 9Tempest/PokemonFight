@@ -9,6 +9,7 @@
 using namespace std;
 using namespace glm;
 
+
 void GameObject::set_orientation(Orientation o){
       glm::vec3 axis = glm::vec3(0,1,0);
       float angle = 0;
@@ -46,6 +47,7 @@ GameObject::GameObject(const float scale,std::string name, int hp, shared_ptr<Sc
     m_tmp_pos = m_pos;
 }
 
+// move with x,z offset
 void GameObject::move(float x, float z){
     DLOG("Object %s move x:%f z:%f", m_name.c_str(), x, z);
     assert(m_status == Status::Idle);
@@ -97,6 +99,7 @@ void Pikachu::update(){
 void Pikachu::move(float x, float y){
     assert(m_status == Status::Idle);
     GameObject::move(x, y);
+    // do move animation
     Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("pikachu_move");
     assert(ani_ptr != nullptr);
     do_animation(*ani_ptr);
@@ -105,7 +108,7 @@ void Pikachu::move(float x, float y){
 void Pikachu::attack(const std::string& name, GameObject* target){
     assert(m_status == Status::Idle);
     DLOG("Pikachu %s attack enemy %s", m_name.c_str(), target->get_name().c_str());
-    // add details here
+    // do attack animation and emit attack unit
     m_status = Status::Attacking;
     if (name == "discharge_left"){
          m_attacku = new Discharge(this, target, LEFT);
@@ -119,6 +122,7 @@ void Pikachu::attack(const std::string& name, GameObject* target){
     return;
 }
 
+// Pikachu die effects
 void Pikachu::die(){
     m_node->scale(vec3(1, 0.1, 1));
     m_node->translate(vec3(0, -5.0f, 0));
@@ -156,7 +160,7 @@ void Snorlax::stun(){
     assert(ani_ptr != nullptr);
     do_animation(*ani_ptr);
     m_status = Status::Stunned;
-     m_target_pos = m_pos;
+    m_target_pos = m_pos;
     m_tmp_pos = m_pos;
 }
 
@@ -176,10 +180,12 @@ void Snorlax::die(){
 
 void Snorlax::update(){
 
+    // if no animation and dead, return
     if (!get_has_anim() && m_status == Status::Dead){
         return;
     }
 
+    // if no animation and not attacking, set to idle
     if (!get_has_anim() && m_attacku == nullptr){
         m_status = Status::Idle;
         return;

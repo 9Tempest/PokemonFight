@@ -11,20 +11,8 @@ rootnode = gr.node("root")
 
 skybox = gr.skybox("skybox3.png")
 
-grassInstance =gr.node("grassInstance")
-grass1 = gr.mesh("plane_text", "grass1")
-grass1:rotate('x', -90)
-grass1:rotate('y', 180)
-grass1:set_material(white)
-grass1:set_texture(GrassInstanceTexture)
-grassInstance:add_child(grass1)
-grassInstance:scale(5,5,5)
-grassInstance:translate(0, 10, 0)
-grasses = gr.node("grasses")
-grasses:add_child(grassInstance)
-rootnode:add_child(grasses)
 
-
+-- set meteorite particle
 MeteoriteTexture = gr.texture("meteorite.png")
 meteorite = gr.mesh("sphere_text", "meteorite")
 meteorite:set_texture(MeteoriteTexture)
@@ -33,17 +21,19 @@ meteorite:set_particle()
 meteorite:scale(1,1,1)
 
 
-
+-- set dirt particle
 DirtParticle = gr.mesh('cube_text', 'dirt')
 DirtParticle:set_material(Dirt)
 DirtParticle:set_particle()
 DirtParticle:set_texture(DirtTexture)
 
+-- set lightning particle
 lightning = gr.mesh('cube', 'lightning')
 lightning:set_material(white)
 lightning:scale(3.5, 0.5, 0.5)
 lightning:set_particle()
 
+-- tiling grass road
 tile_grass = gr.mesh('plane_text', 'tile_grass')
 tile_grass:scale(10,10,10)
 tile_grass:rotate('y', 180)
@@ -62,7 +52,7 @@ for i = 0, 15 do
 
 
 
--- rootnode:add_child(tile_grass)
+-- tiling mud road
 
 tile_mud = gr.mesh('plane_text', 'tile_mud')
 tile_mud:scale(5,5,5)
@@ -79,9 +69,7 @@ for i = 0, 15 do
     end
  end
 
--- rootnode:add_child(tile_mud)
-
-
+-- tiling fences
 fence = gr.mesh('cube_text', 'fence_body')
 fence:set_material(white)
 fence:set_texture(FenceTexture)

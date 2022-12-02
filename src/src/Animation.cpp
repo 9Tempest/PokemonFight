@@ -10,6 +10,7 @@ using namespace glm;
 
 /* Animator */
 
+// clear current animation
 void static clear_ani(Animation& ani){
     ani.m_curr_frame_idx = 0;
     ani.m_frames.clear();
@@ -41,6 +42,7 @@ static void print_pose(const unordered_map<SceneNode*, mat4>& poses){
 
 void Animator::apply_poses_to_nodes(const unordered_map<SceneNode*, mat4>& poses){
     for (auto& p : poses){
+        // calculate the trans difference
         mat4 trans =  m_node->trans * p.second * inverse(p.first->rotationAndTransl);
         p.first->applyRotTranslTransform(trans);
     }
@@ -48,7 +50,7 @@ void Animator::apply_poses_to_nodes(const unordered_map<SceneNode*, mat4>& poses
 
 std::unordered_map<SceneNode*, mat4> Animator::calculateCurrPose(KeyFrame * f1, KeyFrame* f2){
     float progression = calcProgression(m_anim_time, f1, f2);
-    //cout << "progression is " << progression << endl;
+    
     std::unordered_map<SceneNode*, mat4> poses;
     for (auto & p : f1->transforms){
         if (f2->transforms.find(p.first) == f2->transforms.end()) continue;
@@ -85,36 +87,33 @@ void Animator::update(){
     }
     // update animation frame idx if possible
     update_ani(m_curr_anim, m_anim_time);
-    //cout << "curr anim frame idx is " << m_curr_anim.m_curr_frame_idx << " curr ts is " << m_anim_time << " end ts is " << m_curr_anim.m_end_stamp << endl;
 
     KeyFrame* f1;
     KeyFrame* f2;
     // get current and next keyframe
     get_prev_next_keyframe(&f1, &f2);
-    // cout << "curr frame is " << f1->time_stamp << " next frame is " << f2->time_stamp << endl;
 
-
+    // calculate current pose
     std::unordered_map<SceneNode*, mat4> trans = calculateCurrPose(f1, f2);
     //print_pose(trans);
 
     apply_poses_to_nodes(trans);
 
-    //cout << "curr anim time is " << m_anim_time << endl;
-
-    
 }
 
 void Animator::do_animation( const Animation& anim){
     // clear previous ani
     clear_ani(m_curr_anim);
     m_anim_time = 0;
+    
     // create frame 0
     JointMap map_0;
     for (auto& p : anim.m_frames[0].transforms){
         map_0[p.first] = JointTransform{inverse(m_node->trans)* p.first->rotationAndTransl};
     }
     assert(m_curr_anim.m_frames.size() == 0 && m_curr_anim.m_curr_frame_idx == 0);
-    // copy anim
+
+    // copy anim and insert current pose as first frame
     m_curr_anim.m_frames.push_back(KeyFrame(map_0, 0.0f));
     m_curr_anim.m_frames.insert(m_curr_anim.m_frames.end(), anim.m_frames.begin(), anim.m_frames.end());
     m_curr_anim.m_name = anim.m_name;

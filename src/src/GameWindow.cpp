@@ -200,10 +200,8 @@ void GameWindow::init()
 	SoundEngine::init();
 
 	play_music(SOUND_BACKGROUND_MUSIC, true);
-	//SoundEngine::play2D(SOUND_BACKGROUND_MUSIC, true);
-	// set grass node
-	m_scene->set_grass_node();
-	
+
+	// set grass
 	setup_grass_shader();
 	setup_grass_vao();
 }
@@ -467,6 +465,7 @@ void GameWindow::setup_grass_shader(){
 	m_shader_grass.disable();
 }
 
+// randomly generate a cluster of grass
 static void generate_grasses(float x_pos, float z_pos, vector<vec3>& grass_positions){
 	for(float x = -10.0f; x < 10.0f; x+=0.5f)
         for(float z = -5.0f; z < 5.0f; z+=0.5f)
@@ -482,7 +481,6 @@ void GameWindow::setup_grass_vao(){
 	
 	// generate 10-15 grass cluster
 	int random_num = Random::Int(10, 15);
-	cout << " random num is " << random_num << endl;
 	for (int i = 0; i < random_num; i++){
 		float x_pos;
 		float z_pos;
@@ -494,10 +492,8 @@ void GameWindow::setup_grass_vao(){
 			x_pos = Random::Float() * 100;
 			z_pos = - 40 - Random::FloatPositive() * 20;
 		}
-		cout << "x pos is " << x_pos << " z pos is " << z_pos << endl;
 		generate_grasses(x_pos, z_pos, m_grass_positions);
 	}
-	cout << " grass size is " << m_grass_positions.size() << endl;
 	glGenVertexArrays(1, &m_grass_vao);
     glGenBuffers(1, &m_grass_vbo);
     glBindVertexArray(m_grass_vao);

@@ -8,6 +8,7 @@
 class SceneNode;
 class Command;
 
+// status of game objects
 enum class Status{
     Moving,
     Attacking,
@@ -17,6 +18,7 @@ enum class Status{
     Dead
 };
 
+// orientation of pikachu
 enum class Orientation{
   Left,
   Right,
@@ -98,9 +100,12 @@ class GameObject : public Animator{
     */
     virtual void attack(const std::string& name, GameObject* target) = 0;
     virtual void die() = 0;
+
     virtual void under_attack(float damage) {
       m_hp -= damage;
-      if (m_hp <= 0){
+      
+      // if first time hp < 0, die and set status
+      if (m_hp <= 0 && m_status != Status::Dead){
         m_hp = 0.0f;
         die();
         m_status = Status::Dead;

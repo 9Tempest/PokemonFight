@@ -152,7 +152,7 @@ protected:
 	Scene* m_scene;
 
 	// recursive render
-	virtual void visit(SceneNode* node, bool is_grass = false) override{
+	virtual void visit(SceneNode* node) override{
 
 		renderSceneGraph(*node);
 

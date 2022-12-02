@@ -13,7 +13,7 @@ class Player : public Visitor{
         }
 
     public:
-        void visit(SceneNode* node,bool is_grass = false) override{
+        void visit(SceneNode* node) override{
             m_node_mapping[node->m_name] = node;
             //std::cout << node->m_name << " maps to " << node << std::endl;
         }

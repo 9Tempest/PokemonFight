@@ -12,7 +12,7 @@ class SceneNode;
 
 class Visitor{
     public:
-    virtual void visit(SceneNode* node, bool is_grass = false) = 0;
+    virtual void visit(SceneNode* node) = 0;
 };
 
 enum class NodeType {
@@ -90,7 +90,7 @@ public:
 	unsigned int m_nodeId;
 
     // register node
-    virtual void accept(Visitor& p, bool is_grass = false);
+    virtual void accept(Visitor& p);
 
     // parent ptr for locate joints
     SceneNode* parent = nullptr;

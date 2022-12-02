@@ -17,10 +17,6 @@ class Scene{
             m_node->accept(v);
         }
 
-        void set_grass_node();
-
-        static SceneNode* grass_node;
-
         static bool on_boundary(const glm::vec3 &pos){
             return pos.x < XMIN || pos.x > XMAX || pos.z <ZMIN || pos.z > ZMAX;
         }

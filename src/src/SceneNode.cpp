@@ -286,13 +286,12 @@ void SceneNode::applyRotMat(const glm::mat4& rot, const glm::mat4& recoveryM){
 }
 
 
-void SceneNode::accept(Visitor& p, bool is_grass){
+void SceneNode::accept(Visitor& p){
 
-	p.visit(this, is_grass);
+	p.visit(this);
 	
 	for (auto child : children){
-		if (child != Scene::grass_node)
-			child->accept(p, is_grass);
+			child->accept(p);
 	}
 }
 

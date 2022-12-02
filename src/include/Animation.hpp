@@ -21,15 +21,16 @@ class JointTransform{
             return trans;
         }
 
+        // interpolation between two transformations
         static glm::mat4 interpolate(const JointTransform& transA, const JointTransform& transB, float progression){
             return glm::interpolate(transA.get_transform_mat(), transB.get_transform_mat(), progression);
         }
 };
 
+// mapping from scenenode to transformation
 typedef std::unordered_map<SceneNode*, JointTransform> JointMap;
 
 struct KeyFrame{
-    
     
     public:
         JointMap transforms;
@@ -65,12 +66,15 @@ class Animator{
     float m_anim_time;
     time_stamp m_curr_ts;
 
+    // apply transformations to nodes
     void apply_poses_to_nodes(const std::unordered_map<SceneNode*, glm::mat4>& poses);
 
+    // increase animation time
     void increase_animation_time(){
         m_anim_time = get_time_diff(m_curr_ts, get_curr_time());
     }
 
+    // get the previous keyframe and next keyframe given current time
     void get_prev_next_keyframe(KeyFrame** prev_frame, KeyFrame** next_frame){
         *prev_frame = &m_curr_anim.m_frames[m_curr_anim.m_curr_frame_idx];
         assert(m_curr_anim.m_curr_frame_idx < m_curr_anim.m_frames.size()-1);
@@ -96,6 +100,7 @@ class Animator{
         void do_animation(const Animation& anim);
 };
 
+// a singleton Loader that loads .ani file
 class AnimationLoader{
     private:
         void print_assets();

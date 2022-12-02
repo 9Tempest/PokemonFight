@@ -12,7 +12,7 @@
 class GameObject;
 class GeometryNode;
 
-
+// struct to set particle
 struct ParticleProps{
     glm::vec3 position;
     glm::vec3 vel;
@@ -39,7 +39,10 @@ class ParticleSystem{
             float m_lifetime = 1.0f;
             float m_life_remaining = 0.0f;
             bool m_active = false;
+            
+            // callback function that will be invoked after particle inactive
             typedef void (*DestoryFunc)(ParticleSystem::Particle&, GameObject*);
+
             bool is_hit();
             void update_on(float time_diff, float gravity, DestoryFunc func, bool destory_when_touch_ground = false);
 
@@ -63,6 +66,7 @@ class ParticleSystem{
         void Emit(const ParticleProps& pp, bool is_random = true);     
 };
 
+// Global Particle Assets
 class ParticleAssets{
     private:
         // particle name -> mesh id
@@ -74,14 +78,18 @@ class ParticleAssets{
         static GeometryNode* fetch_mesh(const std::string& name);
 };
 
+// flying dirt effect
 void dirt_flying_effect(float radius, const glm::vec3& pos, int base_num = 30);
 
+// discharge effect
 void lightning_effect(const glm::vec3& pos, const glm::vec3& dir);
 
+// meteorite effect
 void generate_meteorite();
 
 
 typedef ParticleSystem::Particle::DestoryFunc DestoryFunc;
 
+// when meteorite falls to the ground, call it to determine the damage for object
 void meteorite_destroy(ParticleSystem::Particle&, GameObject*);
 #endif
