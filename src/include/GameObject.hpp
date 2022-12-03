@@ -26,6 +26,9 @@ enum class Orientation{
   Down
 };
 
+const int HP_MAX_SNORLAX = 400;
+const int HP_MAX_PIKACHU = 100;
+
 class GameObject : public Animator{
   
   protected:
@@ -38,6 +41,7 @@ class GameObject : public Animator{
     Status m_status = Status::Idle;
     Orientation m_ori = Orientation::Down;
     int m_hp;
+    int m_hp_max;
     float m_ori_angle = 0.0f;
    
     AttackUnit* m_attacku = nullptr;
@@ -79,6 +83,7 @@ class GameObject : public Animator{
       }
     }
     int get_hp() const {return m_hp;}
+    int get_hp_max() const {return m_hp_max;}
     virtual float get_radius() const{return 0;}
     SceneNode* get_rootNode() const {return m_node.get();}
 
@@ -101,16 +106,7 @@ class GameObject : public Animator{
     virtual void attack(const std::string& name, GameObject* target) = 0;
     virtual void die() = 0;
 
-    virtual void under_attack(float damage) {
-      m_hp -= damage;
-      
-      // if first time hp < 0, die and set status
-      if (m_hp <= 0 && m_status != Status::Dead){
-        m_hp = 0.0f;
-        die();
-        m_status = Status::Dead;
-      }
-    }
+    virtual void under_attack(float damage);
     virtual void stun(){}
     
 };
@@ -118,7 +114,7 @@ class GameObject : public Animator{
 class Pikachu: public GameObject{
 
   public:
-    Pikachu(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Pikachu", 100, node){
+    Pikachu(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Pikachu", HP_MAX_PIKACHU, node){
 
     }
     ~Pikachu();
@@ -135,7 +131,7 @@ class Snorlax: public GameObject{
 
   public:
     float get_radius() const override { return m_radius; }
-    Snorlax(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Snorlax", 500, node), m_radius(8.0f){
+    Snorlax(std::shared_ptr<SceneNode> node): GameObject(1.0f, "Snorlax", HP_MAX_SNORLAX, node), m_radius(8.0f){
 
     }
     ~Snorlax();

@@ -105,7 +105,7 @@ void Animator::do_animation( const Animation& anim){
     // clear previous ani
     clear_ani(m_curr_anim);
     m_anim_time = 0;
-    
+
     // create frame 0
     JointMap map_0;
     for (auto& p : anim.m_frames[0].transforms){
@@ -121,6 +121,7 @@ void Animator::do_animation( const Animation& anim){
     m_curr_anim.m_curr_frame_idx = 0;
     m_curr_ts = get_curr_time();
     m_has_anim = true;
+    m_remaing_time = m_curr_anim.m_end_stamp;
 }
 
 

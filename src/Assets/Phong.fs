@@ -2,6 +2,7 @@
 
 uniform bool enabletexture;
 uniform bool enableToon;
+uniform bool is2d;
 uniform sampler2D texture1;
 uniform sampler2D shadow;
 
@@ -124,6 +125,17 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
 }
 
 void main() {
-    vec4 color = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+    vec4 color;
+    if (is2d){
+        if (enabletexture){
+            color = texture(texture1, TexCoords);
+            if (color.a < 0.25 ) discard;
+        }   else {
+             color = vec4(material.kd, 1.0);
+        }   // if
+    }   else {
+        color = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+    }
+    
     fragColour = color;
 }

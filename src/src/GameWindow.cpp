@@ -19,7 +19,7 @@ using namespace std;
 using namespace glm;
 using namespace std;
 
-static bool show_gui = true;
+static bool show_gui = false;
 
 mat4 GameWindow::m_view;
 mat4 GameWindow::m_view_original;
@@ -27,6 +27,8 @@ float GameWindow::m_shake_remaining_time = 0.0f;
 float GameWindow::m_shake_time = 0.0f;
 float GameWindow::m_shake_remaining_force = 0.0f;
 float GameWindow::m_shake_force = 0.0f;
+
+unordered_map<std::string, SceneNode*> Scene::m_elements2d;
 
 void GameWindow::play_music(const std::string& music_name, bool is_loop){
 	#ifdef UNMUTED
@@ -40,6 +42,27 @@ void GameWindow::play_music(const std::string& music_name, bool is_loop){
 	#else
 
 	#endif
+}
+
+void GameWindow::set_ui_hp(GameObject* obj){
+	// use name to lookup scene node
+	std::string node_name = "hp_bar_";
+	node_name += obj->get_name();
+
+	// original scale factor is 5.0
+	const float hp_bar_scale = 5.0f;
+	float hp_max = obj->get_hp_max();
+	float hp = obj->get_hp();
+	if (hp < 0) hp = 0;
+
+	// calculate current scale and move bar
+	float curr_len = hp_bar_scale * (hp / hp_max);
+	float offset = (hp_bar_scale - curr_len);
+	assert(Scene::m_elements2d.find(node_name) != Scene::m_elements2d.end());
+	SceneNode* hp_bar = Scene::m_elements2d[node_name];
+	hp_bar->trans[0][0] = curr_len;
+	hp_bar->trans[3][0] = hp_bar->originalM[3][0] - offset;
+	//hp_bar->translate(vec3(-offset, 0,0));
 }
 
 static inline bool is_snorlax_idle(){
@@ -159,6 +182,7 @@ void GameWindow::init()
 			getAssetFilePath("surtorus.obj"),
 			getAssetFilePath("cube_text.obj"),
 			getAssetFilePath("plane_text.obj"),
+			getAssetFilePath("plane2d.obj"),
 			getAssetFilePath("sphere_text.obj")
 			
 	});
@@ -204,6 +228,10 @@ void GameWindow::init()
 	// set grass
 	setup_grass_shader();
 	setup_grass_vao();
+
+	// 2d
+	m_2d_objs->accept(*m_scene);
+	projection2d = glm::ortho(0.0f, float(m_windowWidth),float(m_windowHeight), 0.0f, -1.0f, 1.0f);  
 }
 
 void GameWindow::setup_player_AI(){
@@ -215,6 +243,10 @@ void GameWindow::setup_player_AI(){
 	// TODO: load skybox
 	auto scene_node = processLuaSceneFileAndLoadSkyBox(m_luaSceneFile[2]);
 	m_scene = new Scene(scene_node);
+
+	// load 2d objects
+	m_2d_objs = processLuaSceneFile(m_luaSceneFile[3]);
+
 }
 
 std::shared_ptr<SceneNode> GameWindow::processLuaSceneFileAndLoadSkyBox(const std::string & filename){
@@ -299,6 +331,7 @@ void GameWindow::createShaderProgram()
 	m_shader_grass.attachGeometryShader( getAssetFilePath("grass.geo").c_str() );
 	m_shader_grass.attachFragmentShader( getAssetFilePath("grass.fs").c_str() );
 	m_shader_grass.link();
+
 }
 
 //----------------------------------------------------------------------------------------
@@ -328,6 +361,26 @@ void GameWindow::enableVertexShaderInputSlots()
 	// Restore defaults
 	glBindVertexArray(0);
 }
+
+void GameWindow::render2d(){
+	set_shader(m_shader);
+	m_shader.enable();
+	GLint location = m_shader.getUniformLocation("is2d");
+	glUniform1i(location, 1);
+	m_shader.disable();
+	CHECK_GL_ERRORS;
+
+
+	m_2d_objs->accept(*this);
+
+	
+	m_shader.enable();
+	glUniform1i(location, 0);
+	m_shader.disable();
+	CHECK_GL_ERRORS;
+	
+}
+
 
 //----------------------------------------------------------------------------------------
 void GameWindow::uploadVertexDataToVbos (
@@ -382,6 +435,7 @@ void GameWindow::mapVboDataToVertexShaderInputLocations()
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexPositions);
 	glVertexAttribPointer(m_positionAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 	glVertexAttribPointer(m_positionAttribLocationShadow, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
 
 	// Tell GL how to map data from the vertex buffer "m_vbo_vertexNormals" into the
 	// "normal" vertex attribute location for any bound vertex shader program.
@@ -390,12 +444,7 @@ void GameWindow::mapVboDataToVertexShaderInputLocations()
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_vbo_vertexUVs);
 	glVertexAttribPointer(m_uvAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
-
-	//-- Unbind target, and restore default values:
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	CHECK_GL_ERRORS;
+	
 
 	//-- Unbind target, and restore default values:
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -644,8 +693,7 @@ void GameWindow::appLogic()
 		// change it to general attack method
 		AI::get_instance()->get_GameObject()->attack("BodySlam", HumanPlayer::get_instance()->get_GameObject());
 	}
-
-	glCullFace(GL_BACK);
+	
 	HumanPlayer::get_instance()->get_GameObject()->update();
 	AI::get_instance()->get_GameObject()->update();
 	ParticleAssets::fetch_system("dirt")->update();
@@ -771,6 +819,7 @@ static void updateShaderUniformsScene(
 
 }
 
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once per frame, after guiLogic().
@@ -778,11 +827,16 @@ static void updateShaderUniformsScene(
 void GameWindow::draw() {
 
 
+	
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glEnable( GL_DEPTH_TEST );
 	shadow_processing();
 	scene_processing();
 	renderGrassMain();
+	render2d();
 	renderSkyBox();
+	glDisable(GL_CULL_FACE);
 	glDisable( GL_DEPTH_TEST );
 
 	
@@ -967,7 +1021,9 @@ void static inline emit_dirt_test(){
 const float STEP_SIZE = 5.0f;
 
 static inline bool is_pikachu_idle(){
-	return HumanPlayer::get_instance()->get_GameObject()->get_status() == Status::Idle;
+	float remaining_time = HumanPlayer::get_instance()->get_GameObject()->get_remaining_time();
+	cout << " remaining time is " << remaining_time << endl;
+	return  remaining_time < 0.1f;
 }
 
 static inline bool is_pikachu_moving(){

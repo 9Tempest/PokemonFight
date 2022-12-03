@@ -107,6 +107,7 @@ protected:
 	GLuint m_vbo_vertexNormals;
 	GLuint m_vbo_vertexUVs;
 	GLint m_positionAttribLocation;
+	GLint m_positionAttribLocation2D;
 	GLint m_normalAttribLocation;
 	GLint m_uvAttribLocation;
 	ShaderProgram m_shader;
@@ -123,6 +124,7 @@ protected:
 	void shadow_processing();
 	void scene_processing();
 	void render_scene(ShaderProgram& prog);
+	void render2d();
 
 	// skybox
 	GLuint m_vao_skybox;
@@ -167,9 +169,15 @@ protected:
 	// grasses
 	GLuint m_grass_vao, m_grass_vbo;
 	std::vector<glm::vec3> m_grass_positions;
+
+	// 2d UI
+	glm::mat4 projection2d;
+	glm::vec3  m_color2d = glm::vec3(0.8,0.8,0.8);
+	std::shared_ptr<SceneNode> m_2d_objs;
+	
 	public:
 	static void play_music(const std::string& music_name, bool is_loop = false);
-
+	static void set_ui_hp(GameObject* obj);
 
 	
 };

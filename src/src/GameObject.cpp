@@ -41,16 +41,27 @@ void GameObject::set_orientation(Orientation o){
       
     }
 
-GameObject::GameObject(const float scale,std::string name, int hp, shared_ptr<SceneNode> node): Animator(node), m_scale(scale), m_name(name), m_hp(hp), m_status(Status::Idle){
+GameObject::GameObject(const float scale,std::string name, int hp, shared_ptr<SceneNode> node): Animator(node), m_scale(scale), m_name(name), m_hp(hp),m_hp_max(hp), m_status(Status::Idle){
     m_pos = vec3(m_node->trans[3]);
     m_target_pos = m_pos;
     m_tmp_pos = m_pos;
 }
 
+void GameObject::under_attack(float damage) {
+      m_hp -= damage;
+      GameWindow::set_ui_hp(this);
+      // if first time hp < 0, die and set status
+      if (m_hp <= 0 && m_status != Status::Dead){
+        m_hp = 0.0f;
+        die();
+        m_status = Status::Dead;
+      }
+    }
+
 // move with x,z offset
 void GameObject::move(float x, float z){
     DLOG("Object %s move x:%f z:%f", m_name.c_str(), x, z);
-    assert(m_status == Status::Idle);
+    //assert(m_status == Status::Idle);
     m_status = Status::Moving;
     if (!Scene::on_boundary(m_pos + vec3(x,0,z))){
          m_target_pos = m_pos +  vec3(x, 0, z);
@@ -97,7 +108,7 @@ void Pikachu::update(){
 }
 
 void Pikachu::move(float x, float y){
-    assert(m_status == Status::Idle);
+    //assert(m_status == Status::Idle);
     GameObject::move(x, y);
     // do move animation
     Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("pikachu_move");
@@ -106,7 +117,7 @@ void Pikachu::move(float x, float y){
 }
 
 void Pikachu::attack(const std::string& name, GameObject* target){
-    assert(m_status == Status::Idle);
+    //assert(m_status == Status::Idle);
     DLOG("Pikachu %s attack enemy %s", m_name.c_str(), target->get_name().c_str());
     // do attack animation and emit attack unit
     m_status = Status::Attacking;
@@ -124,8 +135,8 @@ void Pikachu::attack(const std::string& name, GameObject* target){
 
 // Pikachu die effects
 void Pikachu::die(){
-    m_node->scale(vec3(1, 0.1, 1));
-    m_node->translate(vec3(0, -5.0f, 0));
+    m_node->scale(vec3(1, 0.05, 1));
+    m_node->translate(vec3(0, -8.0f, 0));
     GameWindow::play_music(SOUND_FAILURE);
 }
 

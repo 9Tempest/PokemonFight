@@ -63,7 +63,8 @@ class Animator{
     private:
     bool m_has_anim = false;
     Animation m_curr_anim;
-    float m_anim_time;
+    float m_anim_time = 0.0f;
+    float m_remaing_time = 0.0f;
     time_stamp m_curr_ts;
 
     // apply transformations to nodes
@@ -71,7 +72,9 @@ class Animator{
 
     // increase animation time
     void increase_animation_time(){
-        m_anim_time = get_time_diff(m_curr_ts, get_curr_time());
+        float time_diff = get_time_diff(m_curr_ts, get_curr_time());
+        m_anim_time = time_diff;
+        m_remaing_time = m_curr_anim.m_end_stamp - time_diff;
     }
 
     // get the previous keyframe and next keyframe given current time
@@ -87,6 +90,9 @@ class Animator{
         void body_trans(glm::vec3& curr, const glm::vec3& tmp_curr,const glm::vec3& target);
 
     public:
+        float get_remaining_time() const{
+            return m_remaing_time;
+        }
         bool get_has_anim() const{
             return m_has_anim;
         }

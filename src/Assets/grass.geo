@@ -42,10 +42,10 @@ void createQuad(vec3 base_position, mat4 crossmodel){
 	vertexPosition[3] = vec4( 0.25, 0.5, 0.0, 0.0);		// up right
 
 	vec2 textCoords[4];
-	textCoords[0] = vec2(0.0, 0.0);						// down left
-	textCoords[1] = vec2(1.0, 0.0);						// down right
-	textCoords[2] = vec2(0.0, 1.0);						// up left
-	textCoords[3] = vec2(1.0, 1.0);						// up right
+	textCoords[3] = vec2(0.0, 0.0);						// down left
+	textCoords[2] = vec2(1.0, 0.0);						// down right
+	textCoords[1] = vec2(0.0, 1.0);						// up left
+	textCoords[0] = vec2(1.0, 1.0);						// up right
 
 	// wind
 	vec2 windDirection = vec2(1.0, 1.0); float windStrength = 0.15f;

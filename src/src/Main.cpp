@@ -12,9 +12,10 @@ int main( int argc, char **argv )
 	std::string luaPikachu = "Assets/pikachu.lua";
 	std::string luaSnorlax = "Assets/snorlax.lua";
 	std::string luaSene = "Assets/scene.lua";
+	std::string others2D = "Assets/others2D.lua";
 	std::string title("F22 Pokemon Fight!");
 
-	CS488Window::launch(argc, argv, new GameWindow({luaPikachu, luaSnorlax, luaSene}), 1024, 768, title);
+	CS488Window::launch(argc, argv, new GameWindow({luaPikachu, luaSnorlax, luaSene,others2D}), 1024, 768, title);
 
 
 	return 0;
