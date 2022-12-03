@@ -7,13 +7,27 @@
 #include <unordered_set>
 using namespace irrklang;
 
-#define SOUND_BACKGROUND_MUSIC "background.wav"
+
 #define SOUND_LIGHTNING "lightning.wav"
 #define SOUND_SLAM "slam.wav"
-#define SOUND_VICTORY "victory.wav"
+
 #define SOUND_FAILURE "failure.wav"
 
-#define MUTED
+
+#define SOUND_GB_BATTLE_MUSIC "gb_battle.wav"
+#define SOUND_GB_VICTORY_MUSIC "gb_victory.wav"
+#define SOUND_GB_TITLE_MUSIC "gb_title.wav"
+
+#define SOUND_ORIGIN_BATTLE_MUSIC "origin_battle.wav"
+#define SOUND_ORIGIN_VICTORY_MUSIC "origin_victory.wav"
+#define SOUND_ORIGIN_TITLE_MUSIC "origin_title.wav"
+
+#define SOUND_SS_BATTLE_MUSIC "ss_battle.wav"
+#define SOUND_SS_VICTORY_MUSIC "ss_victory.wav"
+#define SOUND_SS_TITLE_MUSIC "ss_title.wav"
+
+
+#define UNMUTED
 
 class SoundEngine{
         static ISoundEngine *engine;

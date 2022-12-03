@@ -4,6 +4,8 @@ red = gr.material({1,0,0}, {0.1, 0.1, 0.1}, 10)
 black = gr.material({0.1,0.1,0.1}, {0.1, 0.1, 0.1}, 10)
 SnorlaxText = gr.texture("snorlax_Icon.png")
 PikachuText = gr.texture("pikachu_avatar.png")
+StartText = gr.texture("start_menu.png")
+StartIconText = gr.texture("start_pikachu.png")
 rootnode = gr.node("root")
 
 --avatar snorlax
@@ -59,4 +61,33 @@ hp_bar_blank:set_material(black)
 rootnode:add_child(hp_bar_blank)
 
 rootnode:translate(-14,10.5,0)
-return rootnode
+
+
+rootnode2 = gr.node("root_start")
+start_menu = gr.mesh("plane_text", "start_menu")
+start_menu:set_material(green)
+start_menu:scale(18,0,13)
+start_menu:rotate('x',90)
+start_menu:rotate('z',180)
+start_menu:set_texture(StartText)
+
+start_Icon = gr.mesh("plane_text", "start_icon")
+start_Icon:set_material(green)
+start_Icon:scale(5,0,5)
+start_Icon:rotate('x',90)
+start_Icon:rotate('z',180)
+
+
+
+start_Icon:set_texture(StartIconText)
+start_Icon:translate(2,5,0.01)
+
+rootnode2:add_child(start_menu)
+rootnode2:add_child(start_Icon)
+rootnode2:translate(0,0,-1)
+
+
+root = gr.node("real_root")
+root:add_child(rootnode)
+root:add_child(rootnode2)
+return root

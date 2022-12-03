@@ -19,16 +19,51 @@ using namespace std;
 using namespace glm;
 using namespace std;
 
-static bool show_gui = false;
+static bool show_gui = true;
 
+glm::mat4 ConstGameView =   glm::lookAt(glm::vec3(0.0f, 0.0f, 20.0f), glm::vec3(0.0f, 0.0f, -1.0f),
+			glm::vec3(0.0f, 1.0f, 0.0f));
 mat4 GameWindow::m_view;
 mat4 GameWindow::m_view_original;
 float GameWindow::m_shake_remaining_time = 0.0f;
 float GameWindow::m_shake_time = 0.0f;
 float GameWindow::m_shake_remaining_force = 0.0f;
 float GameWindow::m_shake_force = 0.0f;
-
+int GameWindow::m_sound_option_model = SoundOptionModel::Origin;
 unordered_map<std::string, SceneNode*> Scene::m_elements2d;
+
+GameObject* winner = nullptr;
+static bool m_game_started = false;
+static bool m_game_gameover = false;
+
+
+vector<vector<string>> GameWindow::sound_tracks{
+	{SOUND_GB_TITLE_MUSIC, SOUND_GB_BATTLE_MUSIC, SOUND_GB_VICTORY_MUSIC},
+	{SOUND_ORIGIN_TITLE_MUSIC, SOUND_ORIGIN_BATTLE_MUSIC, SOUND_ORIGIN_VICTORY_MUSIC },
+	{SOUND_SS_TITLE_MUSIC, SOUND_SS_BATTLE_MUSIC, SOUND_SS_VICTORY_MUSIC}
+};
+
+static inline mat4 calc_rotation(char axis, float angle){
+	vec3 rot_axis;
+
+	switch (axis) {
+		case 'x':
+			rot_axis = vec3(1,0,0);
+			break;
+		case 'y':
+			rot_axis = vec3(0,1,0);
+	        break;
+		case 'z':
+			rot_axis = vec3(0,0,1);
+	        break;
+		default:
+			break;
+	}
+	mat4 rot_matrix = glm::rotate(degreesToRadians(angle), rot_axis);
+	return rot_matrix;
+}
+
+
 
 void GameWindow::play_music(const std::string& music_name, bool is_loop){
 	#ifdef UNMUTED
@@ -43,6 +78,40 @@ void GameWindow::play_music(const std::string& music_name, bool is_loop){
 
 	#endif
 }
+
+void GameWindow::play_title_music(){
+	std::string name = sound_tracks[m_sound_option_model][0];
+	play_music(name, true);
+}
+
+void GameWindow::play_battle_music(){
+	std::string name = sound_tracks[m_sound_option_model][1];
+	play_music(name, true);
+}
+
+void GameWindow::game_over(){
+	m_game_gameover = true;
+	if (HumanPlayer::get_instance()->get_GameObject()->get_hp() == 0){
+		play_music(SOUND_FAILURE);
+		winner = AI::get_instance()->get_GameObject();
+	}	else {
+		std::string name = sound_tracks[m_sound_option_model][2];
+		play_music(name);
+		winner = HumanPlayer::get_instance()->get_GameObject();
+	}
+}
+
+void GameWindow::cameraShake(float duration, float force){
+		m_view_original = ConstGameView;
+		if (duration > m_shake_time){
+			m_shake_time = duration;
+		}
+		if (duration > m_shake_remaining_time){
+			m_shake_remaining_time = duration;
+		}
+		m_shake_force = force;
+		m_shake_remaining_force = force;
+	}
 
 void GameWindow::set_ui_hp(GameObject* obj){
 	// use name to lookup scene node
@@ -145,93 +214,112 @@ void GameWindow::init_skybox_vao(){
 	CHECK_GL_ERRORS;
 }
 
+void GameWindow::start_game(){
+	m_game_started = true;
+	play_battle_music();
+	// init start snorlax
+	AI::get_instance()->get_GameObject()->stun();
+	// init pikachu
+	HumanPlayer::get_instance()->get_GameObject()->set_status(Status::Idle);
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once, at program start.
  */
 void GameWindow::init()
-{
-	// Set the background colour.
-	glClearColor(0.2, 0.5, 0.3, 1.0);
+{	
+	static bool second_time = false;
 
-	createShaderProgram();
-
-	glGenVertexArrays(1, &m_vao_meshData);
-	enableVertexShaderInputSlots();
-
-	init_skybox_vao();
 	// set up node for ai and HumanPlayer
 	setup_player_AI();
-
 	// setup animation loader
 	AnimationLoader* l = AnimationLoader::get_instance();
+
+	if (!second_time){
+		// Set the background colour.
+		glClearColor(0.2, 0.5, 0.3, 1.0);
+
+		createShaderProgram();
+
+		glGenVertexArrays(1, &m_vao_meshData);
+		enableVertexShaderInputSlots();
+
+		init_skybox_vao();
+		
+
+		// Load and decode all .obj files at once here.  You may add additional .obj files to
+		// this list in order to support rendering additional mesh types.  All vertex
+		// positions, and normals will be extracted and stored within the MeshConsolidator
+		// class.
+		unique_ptr<MeshConsolidator> meshConsolidator (new MeshConsolidator{
+				getAssetFilePath("cube.obj"),
+				getAssetFilePath("buckyball.obj"),
+				getAssetFilePath("sphere.obj"),
+				getAssetFilePath("suzanne.obj"),
+				getAssetFilePath("mcube.obj"),
+				getAssetFilePath("cone.obj"),
+				getAssetFilePath("curve.obj"),
+				getAssetFilePath("surtorus.obj"),
+				getAssetFilePath("cube_text.obj"),
+				getAssetFilePath("plane_text.obj"),
+				getAssetFilePath("sphere_text.obj")
+				
+		});
+
+
+		// Acquire the BatchInfoMap from the MeshConsolidator.
+		meshConsolidator->getBatchInfoMap(m_batchInfoMap);
+
+		// Take all vertex data within the MeshConsolidator and upload it to VBOs on the GPU.
+		uploadVertexDataToVbos(*meshConsolidator);
+
+		mapVboDataToVertexShaderInputLocations();
+
+		initPerspectiveMatrix();
+
+		initViewMatrix();
+
+		initLightSources();
+
+		// init skybox
+		m_skybox->initialize();
+
+		// init texture assets
+		TextureAssets::initialize();
+
+		// init shadow mapping
+		m_shadowmap.init(m_light);
+		
+
+		// set grass
+		setup_grass_shader();
+		
+		
+
+		SoundEngine::init();
+	}
+
+	second_time = true;
 	
-
-	// Load and decode all .obj files at once here.  You may add additional .obj files to
-	// this list in order to support rendering additional mesh types.  All vertex
-	// positions, and normals will be extracted and stored within the MeshConsolidator
-	// class.
-	unique_ptr<MeshConsolidator> meshConsolidator (new MeshConsolidator{
-			getAssetFilePath("cube.obj"),
-			getAssetFilePath("buckyball.obj"),
-			getAssetFilePath("sphere.obj"),
-			getAssetFilePath("suzanne.obj"),
-			getAssetFilePath("mcube.obj"),
-			getAssetFilePath("cone.obj"),
-			getAssetFilePath("curve.obj"),
-			getAssetFilePath("surtorus.obj"),
-			getAssetFilePath("cube_text.obj"),
-			getAssetFilePath("plane_text.obj"),
-			getAssetFilePath("plane2d.obj"),
-			getAssetFilePath("sphere_text.obj")
-			
-	});
-
-
-	// Acquire the BatchInfoMap from the MeshConsolidator.
-	meshConsolidator->getBatchInfoMap(m_batchInfoMap);
-
-	// Take all vertex data within the MeshConsolidator and upload it to VBOs on the GPU.
-	uploadVertexDataToVbos(*meshConsolidator);
-
-	mapVboDataToVertexShaderInputLocations();
-
-	initPerspectiveMatrix();
-
-	initViewMatrix();
-
-	initLightSources();
-
+	
 	m_curr_ts = get_curr_time();
+
 	// Exiting the current scope calls delete automatically on meshConsolidator freeing
 	// all vertex data resources.  This is fine since we already copied this data to
 	// VBOs on the GPU.  We have no use for storing vertex data on the CPU side beyond
 	// this point.
+	play_title_music();
 
-	// init skybox
-	m_skybox->initialize();
-
-	// init texture assets
-	TextureAssets::initialize();
-
-	// init shadow mapping
-	m_shadowmap.init(m_light);
-	
-
-	// init start snorlax
-	AI::get_instance()->get_GameObject()->stun();
-
-	SoundEngine::init();
-
-	play_music(SOUND_BACKGROUND_MUSIC, true);
-
-	// set grass
-	setup_grass_shader();
 	setup_grass_vao();
 
 	// 2d
 	m_2d_objs->accept(*m_scene);
-	projection2d = glm::ortho(0.0f, float(m_windowWidth),float(m_windowHeight), 0.0f, -1.0f, 1.0f);  
+	projection2d = glm::ortho(0.0f, float(m_windowWidth),float(m_windowHeight), 0.0f, -1.0f, 1.0f);
+
+	// others
+	m_game_started = false;
+	m_game_gameover = false;  
 }
 
 void GameWindow::setup_player_AI(){
@@ -362,7 +450,7 @@ void GameWindow::enableVertexShaderInputSlots()
 	glBindVertexArray(0);
 }
 
-void GameWindow::render2d(){
+void GameWindow::render2d(SceneNode* node2d){
 	set_shader(m_shader);
 	m_shader.enable();
 	GLint location = m_shader.getUniformLocation("is2d");
@@ -371,7 +459,7 @@ void GameWindow::render2d(){
 	CHECK_GL_ERRORS;
 
 
-	m_2d_objs->accept(*this);
+	node2d->accept(*this);
 
 	
 	m_shader.enable();
@@ -463,8 +551,7 @@ void GameWindow::initPerspectiveMatrix()
 
 //----------------------------------------------------------------------------------------
 void GameWindow::initViewMatrix() {
-	m_view = glm::lookAt(m_camera_pos, vec3(0.0f, 0.0f, -1.0f),
-			vec3(0.0f, 1.0f, 0.0f));
+	m_view = ConstGameView;
 }
 
 //----------------------------------------------------------------------------------------
@@ -707,6 +794,76 @@ void GameWindow::appLogic()
 	//cout << "frame counter is " << time(NULL) << endl;
 }
 
+void GameWindow::show_control_panel(bool & option){
+	static bool firstRun(true);
+	if (firstRun) {
+		ImGui::SetNextWindowPos(ImVec2(m_windowWidth/2-60,m_windowHeight/2));
+		firstRun = false;
+	}
+
+	ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+	float opacity(1.0f);
+	static bool showDebugWindow(true);
+	ImGui::Begin("Control", &showDebugWindow, ImVec2(400,500), opacity,
+				windowFlags);
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Human Player Attack:");
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Attack with left hand(J)");
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Attack with Right hand(K)");
+
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Human Player Move:");
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Move up(W)");
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Move down(S)");
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Move left(D)");
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Move right(A)");
+
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Short Cuts:");	
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Quit(q)");
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Enable toon shading(t)");
+			//option = false;	
+			if (!showDebugWindow){
+				option = false;
+				showDebugWindow = true;
+			}
+	
+	ImGui::End();	
+}
+
+void GameWindow::show_option_panel(bool & option){
+	static bool firstRun(true);
+	if (firstRun) {
+		ImGui::SetNextWindowPos(ImVec2(m_windowWidth/4,m_windowHeight/2+40));
+		firstRun = false;
+	}
+
+	ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
+	float opacity(1.0f);
+	static bool showDebugWindow(true);
+	ImGui::Begin("Options", &showDebugWindow, ImVec2(400,500), opacity,
+				windowFlags);
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Sound Track:");	
+			if( ImGui::RadioButton( "Pokemon GB", &m_sound_option_model, GB ) ) {
+				play_title_music();
+			}
+			if( ImGui::RadioButton( "Pokemon Let's go Pikachu", &m_sound_option_model, Origin ) ) {
+				play_title_music();
+			}
+			if( ImGui::RadioButton( "Pokemon Sword & Shield", &m_sound_option_model, Sword ) ) {
+				play_title_music();
+			}
+			//option = false;	
+			if (!showDebugWindow){
+				option = false;
+				showDebugWindow = true;
+			}
+
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Enjoy the game!");	
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "Sound tracks retrieved from:");	
+			ImGui::TextColored(ImVec4(1.0f, 1.0f, 1.0f, 1.0f), "https://downloads.khinsider.com/game-soundtracks/album/pokemon-sword-shield-ost");	
+	
+	ImGui::End();	
+}
+
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once per frame, after appLogic(), but before the draw() method.
@@ -719,25 +876,63 @@ void GameWindow::guiLogic()
 
 	static bool firstRun(true);
 	if (firstRun) {
-		ImGui::SetNextWindowPos(ImVec2(50, 50));
+		ImGui::SetNextWindowPos(ImVec2(m_windowWidth/2-40,m_windowHeight/2 + 50));
 		firstRun = false;
 	}
 
-	static bool showDebugWindow(true);
-	ImGuiWindowFlags windowFlags(ImGuiWindowFlags_AlwaysAutoResize);
-	float opacity(0.5f);
+	static bool showDebugWindow(false);
+	static bool showControlPanel(false);
+	static bool showOptionPanel(false);
+	ImGuiWindowFlags windowFlags(ImGuiWindowFlags_NoTitleBar);
+	float opacity(0.0f);
+	if (!m_game_started){
+		// menu panel
+		ImGui::Begin("Menu", &showDebugWindow, ImVec2(400,500), opacity,
+				windowFlags);
 
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(245.0f/255.0f, 118.0f/255.0f, 26.0f/255.0f,1.0f));
+			if (ImGui::Button("Start", ImVec2(100,40))){
+				start_game();
+			}
+			ImGui::NextColumn();
+			if (ImGui::Button("Control", ImVec2(100,40))){
+				showControlPanel = true;
+			}
+			ImGui::NextColumn();
+			if (ImGui::Button("Options", ImVec2(100,40))){
+				showOptionPanel = true;
+			}
+			
+			ImGui::PopStyleColor();
 
-	// menu panel
-	ImGui::Begin("Menu", &showDebugWindow, ImVec2(100,100), opacity,
-			windowFlags);
+		// show control panel
+		if (showControlPanel){
+			show_control_panel(showControlPanel);
+		}
 
+		// show option panel
+		if (showOptionPanel){
+			show_option_panel(showOptionPanel);
+		}
 
-		
-		ImGui::Text( "Snorlax hp: %d", AI::get_instance()->get_GameObject()->get_hp());
-		ImGui::Text( "Pikachu hp: %d", HumanPlayer::get_instance()->get_GameObject()->get_hp());
+		ImGui::End();
+	}	else if (m_game_gameover){
+		opacity = 1.0f;
+		ImGui::Begin("Menu", &showDebugWindow, ImVec2(200,200), opacity,
+				windowFlags);
 
-	ImGui::End();
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(245.0f/255.0f, 118.0f/255.0f, 26.0f/255.0f,1.0f));
+			ImGui::Text("Winner is %s !", winner->get_name().c_str());
+			if (ImGui::Button("Quit", ImVec2(100,40))){
+				glfwSetWindowShouldClose(m_window, GL_TRUE);
+			}
+			
+			ImGui::PopStyleColor();
+		ImGui::End();
+	}
+
+	
+	
 
 	
 }
@@ -831,11 +1026,20 @@ void GameWindow::draw() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glEnable( GL_DEPTH_TEST );
-	shadow_processing();
-	scene_processing();
-	renderGrassMain();
-	render2d();
-	renderSkyBox();
+
+	// lazy render components
+	if (m_game_started){
+		shadow_processing();
+		scene_processing();
+		renderGrassMain();
+		render2d(Scene::m_elements2d["root"]);
+		renderSkyBox();
+	}	else {
+		render2d(Scene::m_elements2d["root_start"]);
+	}
+	
+	
+	
 	glDisable(GL_CULL_FACE);
 	glDisable( GL_DEPTH_TEST );
 
@@ -1022,8 +1226,8 @@ const float STEP_SIZE = 5.0f;
 
 static inline bool is_pikachu_idle(){
 	float remaining_time = HumanPlayer::get_instance()->get_GameObject()->get_remaining_time();
-	cout << " remaining time is " << remaining_time << endl;
-	return  remaining_time < 0.1f;
+	Status s = HumanPlayer::get_instance()->get_GameObject()->get_status();
+	return s != Status::Unready && remaining_time < 0.1f;
 }
 
 static inline bool is_pikachu_moving(){
@@ -1093,6 +1297,11 @@ bool GameWindow::keyInputEvent (
 		}
 		if (key == GLFW_KEY_T){
 			m_enableToonShading = !m_enableToonShading;
+			eventHandled = true;
+		}
+
+		if (key == GLFW_KEY_Z){
+			init();
 			eventHandled = true;
 		}
 		

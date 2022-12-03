@@ -85,7 +85,7 @@ void dirt_flying_effect(float radius, const glm::vec3& pos, int base_num = 30);
 void lightning_effect(const glm::vec3& pos, const glm::vec3& dir);
 
 // meteorite effect
-void generate_meteorite();
+void generate_meteorite(int base_num = 10);
 
 
 typedef ParticleSystem::Particle::DestoryFunc DestoryFunc;

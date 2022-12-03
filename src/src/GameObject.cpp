@@ -41,7 +41,7 @@ void GameObject::set_orientation(Orientation o){
       
     }
 
-GameObject::GameObject(const float scale,std::string name, int hp, shared_ptr<SceneNode> node): Animator(node), m_scale(scale), m_name(name), m_hp(hp),m_hp_max(hp), m_status(Status::Idle){
+GameObject::GameObject(const float scale,std::string name, int hp, shared_ptr<SceneNode> node): Animator(node), m_scale(scale), m_name(name), m_hp(hp),m_hp_max(hp), m_status(Status::Unready){
     m_pos = vec3(m_node->trans[3]);
     m_target_pos = m_pos;
     m_tmp_pos = m_pos;
@@ -55,6 +55,7 @@ void GameObject::under_attack(float damage) {
         m_hp = 0.0f;
         die();
         m_status = Status::Dead;
+        GameWindow::game_over();
       }
     }
 
@@ -63,6 +64,7 @@ void GameObject::move(float x, float z){
     DLOG("Object %s move x:%f z:%f", m_name.c_str(), x, z);
     //assert(m_status == Status::Idle);
     m_status = Status::Moving;
+    cout << "mpos is " << m_pos << endl;
     if (!Scene::on_boundary(m_pos + vec3(x,0,z))){
          m_target_pos = m_pos +  vec3(x, 0, z);
     }   else {
@@ -80,6 +82,8 @@ void GameObject::set_pos(const glm::vec3& pos){
 // ------------- Pikachu logics ------------
 
 void Pikachu::update(){
+
+    if (m_status == Status::Unready) return;
 
     // update attackUnit
     if (m_attacku != nullptr){
@@ -137,7 +141,6 @@ void Pikachu::attack(const std::string& name, GameObject* target){
 void Pikachu::die(){
     m_node->scale(vec3(1, 0.05, 1));
     m_node->translate(vec3(0, -8.0f, 0));
-    GameWindow::play_music(SOUND_FAILURE);
 }
 
 Pikachu::~Pikachu(){
@@ -159,7 +162,8 @@ void Snorlax::attack(const std::string& name, GameObject* target){
         Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("snorlax_meteorite_fall");
         assert(ani_ptr != nullptr);
         do_animation(*ani_ptr);
-        generate_meteorite();
+        int base_num = 10 + 20 * float(m_hp_max - m_hp)/float(m_hp_max);
+        generate_meteorite(base_num);
     }
     
     return;
@@ -186,10 +190,10 @@ void Snorlax::die(){
     m_status = Status::Dead;
     m_target_pos = m_pos;
     m_tmp_pos = m_pos;
-    GameWindow::play_music(SOUND_VICTORY);
 }
 
 void Snorlax::update(){
+    if (m_status == Status::Unready) return;
 
     // if no animation and dead, return
     if (!get_has_anim() && m_status == Status::Dead){

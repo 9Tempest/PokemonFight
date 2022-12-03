@@ -17,11 +17,10 @@
 #include "Scene.hpp"
 #include "sound.hpp"
 #include "shadow.hpp"
-enum OptionModel {
-	ModelPosition,
-	ModelJoints,
-
-	ModelNone,
+enum SoundOptionModel {
+	GB,
+	Origin,
+	Sword,
 };
 
 
@@ -33,17 +32,7 @@ public:
 	GameWindow(const std::vector<std::string> & luaSceneFiles);
 	virtual ~GameWindow();
 	// camera shake
-	static void cameraShake(float duration, float force = SHAKE_STRENGTH){
-		m_view_original = m_view;
-		if (duration > m_shake_time){
-			m_shake_time = duration;
-		}
-		if (duration > m_shake_remaining_time){
-			m_shake_remaining_time = duration;
-		}
-		m_shake_force = force;
-		m_shake_remaining_force = force;
-	}
+	static void cameraShake(float duration, float force = SHAKE_STRENGTH);
 
 protected:
 	virtual void init() override;
@@ -124,7 +113,9 @@ protected:
 	void shadow_processing();
 	void scene_processing();
 	void render_scene(ShaderProgram& prog);
-	void render2d();
+	void render2d(SceneNode* node2d);
+
+	void start_game();
 
 	// skybox
 	GLuint m_vao_skybox;
@@ -141,7 +132,7 @@ protected:
 	JointNode* m_headNode = nullptr;
 
 	// option model
-	int m_option_model = ModelPosition;
+	static int m_sound_option_model;
 
 	// sphere removal
 	bool m_z_buffer, m_backface, m_frontface;
@@ -161,7 +152,9 @@ protected:
 	}
 	// Shadow mapping
 	ShadowMap m_shadowmap;
+
 	// background music
+	static std::vector<std::vector<std::string>> sound_tracks;
 	static irrklang::ISound* m_sound;
 	// tool shading
 	bool m_enableToonShading = false;
@@ -174,9 +167,13 @@ protected:
 	glm::mat4 projection2d;
 	glm::vec3  m_color2d = glm::vec3(0.8,0.8,0.8);
 	std::shared_ptr<SceneNode> m_2d_objs;
-	
+	void show_control_panel(bool&);
+	void show_option_panel(bool&);
 	public:
 	static void play_music(const std::string& music_name, bool is_loop = false);
+	static void play_title_music();
+	static void play_battle_music();
+	static void game_over();
 	static void set_ui_hp(GameObject* obj);
 
 	

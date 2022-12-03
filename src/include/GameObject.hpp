@@ -15,7 +15,8 @@ enum class Status{
     Idle,
     Stunned,
     UnderAttack,
-    Dead
+    Dead,
+    Unready
 };
 
 // orientation of pikachu

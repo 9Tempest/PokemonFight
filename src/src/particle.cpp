@@ -138,16 +138,16 @@ void ParticleSystem::Emit(const ParticleProps& pp, bool is_random){
 
 }
 
-void generate_meteorite(){
+void generate_meteorite(int base_num){
     GameWindow::cameraShake(10.0f, 0.5f);
-    int num = Random::Int(10,20);
+    int num = Random::Int(base_num,base_num*1.5f);
     ParticleProps pps;
 
     // randomly generate meteorites
     for (int i = 0; i < num; i++){
         float positionX = Random::Float() * 50;
         float positionZ = -Random::FloatPositive() * 50;
-        float y_var = Random::Float() * 100;
+        float y_var = Random::Float() * 120;
         vec3 ppos = vec3(positionX, 150.0f + y_var, positionZ);
         pps = {ppos, vec3(0,0,0), 10.0f, vec3(0,0,0), 2.0f, 4.0f};
         ParticleAssets::fetch_system("meteorite")->Emit(pps);

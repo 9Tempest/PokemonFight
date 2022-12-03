@@ -4,7 +4,7 @@
 class Player : public Visitor{
     protected:
         Player(){}
-        GameObject* m_obj;
+        GameObject* m_obj = nullptr;
         std::unordered_map<std::string, SceneNode*> m_node_mapping;
 
         void load_mapping(SceneNode* root_node){
@@ -27,6 +27,9 @@ class Player : public Visitor{
         }
 
         void set_GameObject(GameObject* obj){
+            if (m_obj != nullptr){
+                delete m_obj;
+            }
             m_obj = obj;
             // clean map
             m_node_mapping.clear();
