@@ -2,6 +2,7 @@
 #include <memory.h>
 #include "SceneNode.hpp"
 #include <unordered_map>
+#include <memory>
 class Scene : public Visitor{
     std::shared_ptr<SceneNode> m_node;
     
