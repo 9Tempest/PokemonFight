@@ -530,7 +530,7 @@ void GameWindow::initViewMatrix() {
 //----------------------------------------------------------------------------------------
 void GameWindow::initLightSources() {
 	// World-space position
-	m_light.position = vec3(3.0f, 30.0f, 10.0f);
+	m_light.position = vec3(10.0f, 20.0f, 10.0f);
 	m_light.rgbIntensity = vec3(1.0f,1.0f, 1.0f); // light
 }
 
