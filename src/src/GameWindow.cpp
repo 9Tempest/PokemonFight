@@ -824,9 +824,6 @@ void GameWindow::show_option_panel(bool & option){
 			if( ImGui::RadioButton( "Pokemon Let's go Pikachu", &m_sound_option_model, Origin ) ) {
 				play_title_music();
 			}
-			if( ImGui::RadioButton( "Pokemon Sword & Shield", &m_sound_option_model, Sword ) ) {
-				play_title_music();
-			}
 			//option = false;	
 			if (!showDebugWindow){
 				option = false;
