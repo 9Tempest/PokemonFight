@@ -31,12 +31,8 @@ using namespace irrklang;
 
 class SoundEngine{
         static ISoundEngine *engine;
-        static std::unordered_set<std::string> assets;
         static const char* sound_dir;
     public:
-        static void init(){
-            // engine = createIrrKlangDevice();
-        }
 
         static irrklang::ISound* play3D(const std::string& name, const glm::vec3& pos, bool is_loop = false, float volume = 1.0f);
         static irrklang::ISound* play2D(const std::string& name, bool is_loop = false, float volume = 1.0f);

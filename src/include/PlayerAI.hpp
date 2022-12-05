@@ -1,6 +1,7 @@
 #pragma once
 #include "GameObject.hpp"
 
+// Singleton class that stores the GameObject
 class Player : public Visitor{
     protected:
         Player(){}

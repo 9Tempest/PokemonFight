@@ -36,10 +36,6 @@ public:
 
 protected:
 	virtual void init() override;
-	void resetAll();
-	void resetJoints();
-	void resetPosition();
-	void resetRotation();
 	
 	virtual void appLogic() override;
 	virtual void guiLogic() override;

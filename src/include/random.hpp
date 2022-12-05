@@ -1,6 +1,7 @@
 #pragma once
 
 #include <random>
+// provides random number generation of float and integers
 class Random{
     private:
         static std::mt19937 s_RandomEngine ;

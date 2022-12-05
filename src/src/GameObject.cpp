@@ -162,7 +162,7 @@ void Snorlax::attack(const std::string& name, GameObject* target){
         Animation* ani_ptr = AnimationLoader::get_instance()->get_animation_by_name("snorlax_meteorite_fall");
         assert(ani_ptr != nullptr);
         do_animation(*ani_ptr);
-        int base_num = 10 + 20 * float(m_hp_max - m_hp)/float(m_hp_max);
+        int base_num = 20 + 40 * float(m_hp_max - m_hp)/float(m_hp_max);
         generate_meteorite(base_num);
     }
     

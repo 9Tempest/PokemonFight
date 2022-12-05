@@ -164,25 +164,6 @@ GameWindow::GameWindow(const vector<string> & luaSceneFile)
 
 }
 
-void GameWindow::resetAll(){
-	//reset position, orientation and joint angles 
-	HumanPlayer::get_instance()->get_root_node()->reset();
-}
-
-void GameWindow::resetJoints(){
-	//reset position, orientation and joint angles 
-	HumanPlayer::get_instance()->get_root_node()->init_joint_angle();
-}
-
-void GameWindow::resetPosition(){
-	//reset position
-	HumanPlayer::get_instance()->get_root_node()->reset_position();
-}
-
-void GameWindow::resetRotation(){
-	//reset joint angles 
-	HumanPlayer::get_instance()->get_root_node()->reset_rotation();
-}
 //----------------------------------------------------------------------------------------
 // Destructor
 GameWindow::~GameWindow()
@@ -229,78 +210,69 @@ void GameWindow::start_game(){
  */
 void GameWindow::init()
 {	
-	static bool second_time = false;
 
 	// set up node for ai and HumanPlayer
 	setup_player_AI();
 	// setup animation loader
 	AnimationLoader* l = AnimationLoader::get_instance();
 
-	if (!second_time){
-		// Set the background colour.
-		glClearColor(0.2, 0.5, 0.3, 1.0);
+	// Set the background colour.
+	glClearColor(0.2, 0.5, 0.3, 1.0);
 
-		createShaderProgram();
+	createShaderProgram();
 
-		glGenVertexArrays(1, &m_vao_meshData);
-		enableVertexShaderInputSlots();
+	glGenVertexArrays(1, &m_vao_meshData);
+	enableVertexShaderInputSlots();
 
-		init_skybox_vao();
-		
+	init_skybox_vao();
+	
 
-		// Load and decode all .obj files at once here.  You may add additional .obj files to
-		// this list in order to support rendering additional mesh types.  All vertex
-		// positions, and normals will be extracted and stored within the MeshConsolidator
-		// class.
-		unique_ptr<MeshConsolidator> meshConsolidator (new MeshConsolidator{
-				getAssetFilePath("cube.obj"),
-				getAssetFilePath("buckyball.obj"),
-				getAssetFilePath("sphere.obj"),
-				getAssetFilePath("suzanne.obj"),
-				getAssetFilePath("mcube.obj"),
-				getAssetFilePath("cone.obj"),
-				getAssetFilePath("curve.obj"),
-				getAssetFilePath("surtorus.obj"),
-				getAssetFilePath("cube_text.obj"),
-				getAssetFilePath("plane_text.obj"),
-				getAssetFilePath("sphere_text.obj")
-				
-		});
+	// Load and decode all .obj files at once here.  You may add additional .obj files to
+	// this list in order to support rendering additional mesh types.  All vertex
+	// positions, and normals will be extracted and stored within the MeshConsolidator
+	// class.
+	unique_ptr<MeshConsolidator> meshConsolidator (new MeshConsolidator{
+			getAssetFilePath("cube.obj"),
+			getAssetFilePath("buckyball.obj"),
+			getAssetFilePath("sphere.obj"),
+			getAssetFilePath("suzanne.obj"),
+			getAssetFilePath("mcube.obj"),
+			getAssetFilePath("cone.obj"),
+			getAssetFilePath("curve.obj"),
+			getAssetFilePath("surtorus.obj"),
+			getAssetFilePath("cube_text.obj"),
+			getAssetFilePath("plane_text.obj"),
+			getAssetFilePath("sphere_text.obj")
+			
+	});
 
 
-		// Acquire the BatchInfoMap from the MeshConsolidator.
-		meshConsolidator->getBatchInfoMap(m_batchInfoMap);
+	// Acquire the BatchInfoMap from the MeshConsolidator.
+	meshConsolidator->getBatchInfoMap(m_batchInfoMap);
 
-		// Take all vertex data within the MeshConsolidator and upload it to VBOs on the GPU.
-		uploadVertexDataToVbos(*meshConsolidator);
+	// Take all vertex data within the MeshConsolidator and upload it to VBOs on the GPU.
+	uploadVertexDataToVbos(*meshConsolidator);
 
-		mapVboDataToVertexShaderInputLocations();
+	mapVboDataToVertexShaderInputLocations();
 
-		initPerspectiveMatrix();
+	initPerspectiveMatrix();
 
-		initViewMatrix();
+	initViewMatrix();
 
-		initLightSources();
+	initLightSources();
 
-		// init skybox
-		m_skybox->initialize();
+	// init skybox
+	m_skybox->initialize();
 
-		// init texture assets
-		TextureAssets::initialize();
+	// init texture assets
+	TextureAssets::initialize();
 
-		// init shadow mapping
-		m_shadowmap.init(m_light);
-		
+	// init shadow mapping
+	m_shadowmap.init(m_light);
+	
 
-		// set grass
-		setup_grass_shader();
-		
-		
-
-		SoundEngine::init();
-	}
-
-	second_time = true;
+	// set grass
+	setup_grass_shader();
 	
 	
 	m_curr_ts = get_curr_time();
@@ -451,6 +423,7 @@ void GameWindow::enableVertexShaderInputSlots()
 }
 
 void GameWindow::render2d(SceneNode* node2d){
+	// set 2d flag of shader
 	set_shader(m_shader);
 	m_shader.enable();
 	GLint location = m_shader.getUniformLocation("is2d");
@@ -458,10 +431,10 @@ void GameWindow::render2d(SceneNode* node2d){
 	m_shader.disable();
 	CHECK_GL_ERRORS;
 
-
+	// render the nodes
 	node2d->accept(*this);
 
-	
+	// restore the settings
 	m_shader.enable();
 	glUniform1i(location, 0);
 	m_shader.disable();
@@ -586,14 +559,14 @@ void GameWindow::setup_grass_shader(){
 	}
 	{
 		// set location for wind map
-		GLint location = m_shader_grass.getUniformLocation("u_wind");
+		GLint location = m_shader_grass.getUniformLocation("Wind");
 		glUniform1i(location, 1);
 		CHECK_GL_ERRORS;
 	}
 
 	{
 		// perspective
-		GLint location = m_shader_grass.getUniformLocation("u_projection");
+		GLint location = m_shader_grass.getUniformLocation("Projection");
 		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_perpsective));
 		CHECK_GL_ERRORS;
 	}
@@ -628,6 +601,7 @@ void GameWindow::setup_grass_vao(){
 			x_pos = Random::Float() * 100;
 			z_pos = - 40 - Random::FloatPositive() * 20;
 		}
+		// generate grasses cluster at given position
 		generate_grasses(x_pos, z_pos, m_grass_positions);
 	}
 	glGenVertexArrays(1, &m_grass_vao);
@@ -660,19 +634,19 @@ void GameWindow::renderGrassMain(){
 	// update view
 	{
 		// set location for view
-		GLint location = m_shader_grass.getUniformLocation("u_view");
+		GLint location = m_shader_grass.getUniformLocation("View");
 		glUniformMatrix4fv(location, 1, GL_FALSE, value_ptr(m_view));
 		CHECK_GL_ERRORS;
 	}
 	{
 		// set location for camera pos
-		GLint location = m_shader_grass.getUniformLocation("u_cameraPosition");
+		GLint location = m_shader_grass.getUniformLocation("CameraPosition");
 		glUniform3fv(location, 1, value_ptr(m_camera_pos));
 		CHECK_GL_ERRORS;
 	}
 	{
 		// set time
-		GLint location = m_shader_grass.getUniformLocation("u_time");
+		GLint location = m_shader_grass.getUniformLocation("Time");
 		glUniform1f(location, glfwGetTime());
 		CHECK_GL_ERRORS;
 	}
@@ -917,7 +891,7 @@ void GameWindow::guiLogic()
 
 		ImGui::End();
 	}	else if (m_game_gameover){
-		opacity = 1.0f;
+		opacity = 0.0f;
 		ImGui::Begin("Menu", &showDebugWindow, ImVec2(200,200), opacity,
 				windowFlags);
 

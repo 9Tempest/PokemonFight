@@ -70,6 +70,7 @@ void Animator::body_trans(glm::vec3& curr, const glm::vec3& tmp_curr, const glm:
 }
 
 void Animator::update(){
+    // no animation to perform, directly return
     if (m_has_anim == false) {
         //DLOG("no ani here!");
         return;
@@ -78,6 +79,7 @@ void Animator::update(){
     // increase animation time
     increase_animation_time();
 
+    // if animation time reaches the end, stop it
     if (m_anim_time >= m_curr_anim.m_end_stamp) {
         DLOG("done ani");
         m_has_anim = false;

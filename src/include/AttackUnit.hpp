@@ -9,11 +9,6 @@
 
 class GameObject;
 
-struct AttackUnitArgs{
-    float arg1;
-    float arg2;
-    float arg3;
-};
 
 class AttackUnit{
   protected:
@@ -23,7 +18,6 @@ class AttackUnit{
     glm::vec3 m_pos;
     GameObject* m_attacker = nullptr;
     GameObject* m_target = nullptr;
-    AttackUnitArgs m_args;
     time_stamp m_ts;
     irrklang::ISound* m_sound = nullptr;
   public:
@@ -35,11 +29,6 @@ class AttackUnit{
                 m_ts = get_curr_time();
             }
         
-        void set_position_target_args(const glm::vec3& pos, GameObject* target, const AttackUnitArgs& args){
-            m_pos = pos;
-            m_target = target;
-            m_args = args;
-        }
         bool get_is_done() const{return m_done;}
 
         virtual bool hit() = 0;

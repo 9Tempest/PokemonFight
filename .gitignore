@@ -27,5 +27,7 @@ imgui.ini
 
 /docs/proposal.*
 !/project/proposal.tex
+/docs/report.*
+!/project/report.tex
 
 

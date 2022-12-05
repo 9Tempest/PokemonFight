@@ -8,12 +8,11 @@ out GS_OUT {
 	float colorVariation;
 } gs_out;
 
-uniform mat4 u_view;
-uniform mat4 u_projection;
-uniform mat4 u_model;
-uniform vec3 u_cameraPosition;
-uniform sampler2D u_wind;
-uniform float u_time;
+uniform mat4 View;
+uniform mat4 Projection;
+uniform vec3 CameraPosition;
+uniform sampler2D Wind;
+uniform float Time;
 
 /* CONST PARAMETERS */
 const float c_min_size = 0.6f;
@@ -33,7 +32,7 @@ float random (vec2 st);
 float noise (in vec2 st);
 float fbm ( in vec2 _st);
 
-/* MAIN FUNCTIONS */
+// The main function of create a quad with wind effect
 void createQuad(vec3 base_position, mat4 crossmodel){
 	vec4 vertexPosition[4];
 	vertexPosition[0] = vec4(-0.25, 0.0, 0.0, 0.0); 	// down left
@@ -49,10 +48,10 @@ void createQuad(vec3 base_position, mat4 crossmodel){
 
 	// wind
 	vec2 windDirection = vec2(1.0, 1.0); float windStrength = 0.15f;
-	vec2 uv = base_position.xz/10.0 + windDirection * windStrength * u_time ;
+	vec2 uv = base_position.xz/10.0 + windDirection * windStrength * Time ;
 	uv.x = mod(uv.x,1.0);
 	uv.y = mod(uv.y,1.0);
-	vec4 wind = texture(u_wind, uv);
+	vec4 wind = texture(Wind, uv);
 	mat4 modelWind =  (rotationX(wind.x*PI*0.75f - PI*0.25f) * rotationZ(wind.y*PI*0.75f - PI*0.25f));
 	mat4 modelWindApply = mat4(1);
 
@@ -62,7 +61,7 @@ void createQuad(vec3 base_position, mat4 crossmodel){
 	// loop of billboard creation
 	for(int i = 0; i < 4; i++) {
 		if (i == 2 ) modelWindApply = modelWind;
-	    gl_Position = u_projection * u_view *
+	    gl_Position = Projection * View *
             (gl_in[0].gl_Position + modelWindApply*modelRandY*crossmodel*(vertexPosition[i]*grass_size));
 
 	    gs_out.textCoord = textCoords[i];
@@ -100,7 +99,7 @@ void createGrass(int numberQuads){
 /* MAIN */
 void main()
 {
-	vec3 distance_with_camera = gl_in[0].gl_Position.xyz - u_cameraPosition;
+	vec3 distance_with_camera = gl_in[0].gl_Position.xyz - CameraPosition;
 	float dist_length = length(distance_with_camera); // distance of position to camera
 	grass_size = 5 * (random(gl_in[0].gl_Position.xz) * (1.0f - c_min_size) + c_min_size); 	// for random size
 

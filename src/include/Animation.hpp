@@ -38,7 +38,7 @@ struct KeyFrame{
         KeyFrame(const JointMap& transforms, float time_stamp):transforms(transforms), time_stamp(time_stamp){}
 };  
 
-class Animation{
+struct Animation{
 
     friend std::ostream & operator << (std::ostream & os, const Animation & ani);
     public:

@@ -148,8 +148,8 @@ void generate_meteorite(int base_num){
         float positionX = Random::Float() * 50;
         float positionZ = -Random::FloatPositive() * 50;
         float y_var = Random::Float() * 120;
-        vec3 ppos = vec3(positionX, 150.0f + y_var, positionZ);
-        pps = {ppos, vec3(0,0,0), 10.0f, vec3(0,0,0), 2.0f, 4.0f};
+        vec3 ppos = vec3(positionX, 130.0f + y_var, positionZ);
+        pps = {ppos, vec3(0,0,0), 20.0f, vec3(0,0,0), 2.0f, 4.0f};
         ParticleAssets::fetch_system("meteorite")->Emit(pps);
     }
     // emit one mete on top of pikachu
