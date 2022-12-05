@@ -14,7 +14,8 @@ includeDirList = {
 
 libDirectories = { 
     "../lib",
-    "../shared/irrKlang-64bit-1.6.0/bin/macosx-gcc"
+    "../shared/irrKlang-64bit-1.6.0/bin/macosx-gcc",
+    "./lib"
 }
 
 

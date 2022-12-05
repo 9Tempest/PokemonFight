@@ -2,7 +2,7 @@
 green = gr.material({0,1,0}, {0.1, 0.1, 0.1}, 10)
 red = gr.material({1,0,0}, {0.1, 0.1, 0.1}, 10)
 black = gr.material({0.1,0.1,0.1}, {0.1, 0.1, 0.1}, 10)
-SnorlaxText = gr.texture("snorlax_Icon.png")
+SnorlaxText = gr.texture("Snorlax_Icon.png")
 PikachuText = gr.texture("pikachu_avatar.png")
 StartText = gr.texture("start_menu.png")
 StartIconText = gr.texture("start_pikachu.png")

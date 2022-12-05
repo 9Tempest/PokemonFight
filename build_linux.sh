@@ -11,4 +11,3 @@ premake4 gmake
 make clean
 make all -j8
 
-mv src/game ../game
