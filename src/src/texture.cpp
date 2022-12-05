@@ -30,7 +30,7 @@ void Texture::initialize(const std::string& assetsDir){
         DLOG("Should be initialized once; but found twice");
         return;
     }
-    cout << "loading " << m_filePath << endl;
+    PRINT(cout << "loading " << m_filePath << endl;)
     std::vector<unsigned char> m_rawdata;
     unsigned error = lodepng::decode(m_rawdata, m_width, m_height, assetsDir + m_filePath, LCT_RGBA);
     if (error) {

@@ -2,6 +2,7 @@
 
 uniform bool enabletexture;
 uniform bool enableToon;
+uniform bool enableShadow;
 uniform bool is2d;
 uniform sampler2D texture1;
 uniform sampler2D shadow;
@@ -68,16 +69,37 @@ float ShadowCalculation(vec4 fragPosLightSpace, float bias)
     return shadow_factor;
 }
 
-vec3 toonMapping(float intensity, vec3 color) {
-    vec3 res;
-    if (intensity > 0.8)
-		res = color;
-	else if (intensity > 0.6)
-		res = 0.8 * color;
-	else if (intensity > 0.3)
-		res = 0.5 * color;
+vec4 toonMapping(vec4 color) {
+    vec4 res = color;
+    // red part
+    if (color.r > 0.8)
+		res.r = 1.0;
+	else if (color.r  > 0.6)
+		res.r = 0.6;
+	else if (color.r  > 0.3)
+		res.r = 0.3;
     else
-		res = 0.25 * color;
+		res.r = 0.1;
+    
+    // green part
+    if (color.g > 0.8)
+		res.g = 1.0;
+	else if (color.g  > 0.6)
+		res.g = 0.6;
+	else if (color.g  > 0.3)
+		res.g = 0.3;
+    else
+		res.g = 0.1;
+
+    // blue part
+    if (color.b > 0.8)
+		res.b = 1.0;
+	else if (color.b  > 0.6)
+		res.b = 0.6;
+	else if (color.b  > 0.3)
+		res.b = 0.3;
+    else
+		res.b = 0.1;
     return res;
 }
 
@@ -99,10 +121,7 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
     }   else {
         color = material.kd;
     }
-    // if enable toon shading
-    if (enableToon){
-        color = toonMapping(n_dot_l, color);
-    }
+    
 	diffuse = color * n_dot_l;
 
     vec3 specular = vec3(0.0);
@@ -119,7 +138,10 @@ vec3 phongModel(vec3 fragPosition, vec3 fragNormal) {
     float bias = max(0.05 * (1.0 -n_dot_l), 0.05);  
 
     // calculate shadow
-    float shadow_factor = ShadowCalculation(fs_in.FragPosLightSpace, bias);
+    float shadow_factor = 0.0f;
+    if (enableShadow){
+        shadow_factor = ShadowCalculation(fs_in.FragPosLightSpace, bias);
+    } 
 
     return ambientIntensity + ((1.0-shadow_factor) * light.rgbIntensity) * (diffuse+specular);
 }
@@ -135,6 +157,11 @@ void main() {
         }   // if
     }   else {
         color = vec4(phongModel(fs_in.position_ES, fs_in.normal_ES), 1.0);
+    }
+
+    // if enable toon shading
+    if (enableToon){
+        color = toonMapping(color);
     }
     
     fragColour = color;

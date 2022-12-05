@@ -152,8 +152,10 @@ protected:
 	// background music
 	static std::vector<std::vector<std::string>> sound_tracks;
 	static irrklang::ISound* m_sound;
+
 	// tool shading
 	bool m_enableToonShading = false;
+	bool m_enableShadowMapping = true;
 
 	// grasses
 	GLuint m_grass_vao, m_grass_vbo;
@@ -165,6 +167,7 @@ protected:
 	std::shared_ptr<SceneNode> m_2d_objs;
 	void show_control_panel(bool&);
 	void show_option_panel(bool&);
+	void toon_button();
 	public:
 	static void play_music(const std::string& music_name, bool is_loop = false);
 	static void play_title_music();

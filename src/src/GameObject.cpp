@@ -64,7 +64,7 @@ void GameObject::move(float x, float z){
     DLOG("Object %s move x:%f z:%f", m_name.c_str(), x, z);
     //assert(m_status == Status::Idle);
     m_status = Status::Moving;
-    cout << "mpos is " << m_pos << endl;
+    PRINT(cout << "mpos is " << m_pos << endl;)
     if (!Scene::on_boundary(m_pos + vec3(x,0,z))){
          m_target_pos = m_pos +  vec3(x, 0, z);
     }   else {

@@ -10,5 +10,3 @@ cd src
 premake5 gmake
 make clean
 make all -j8
-
-mv game ../game

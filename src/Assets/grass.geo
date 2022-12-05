@@ -47,8 +47,8 @@ void createQuad(vec3 base_position, mat4 crossmodel){
 	textCoords[0] = vec2(1.0, 1.0);						// up right
 
 	// wind
-	vec2 windDirection = vec2(1.0, 1.0); float windStrength = 0.15f;
-	vec2 uv = base_position.xz/10.0 + windDirection * windStrength * Time ;
+	vec2 windDirection = vec2(1.0, 1.0); float windStrength = 0.1f;
+	vec2 uv = base_position.xz/100.0 + windStrength * Time ;
 	uv.x = mod(uv.x,1.0);
 	uv.y = mod(uv.y,1.0);
 	vec4 wind = texture(Wind, uv);

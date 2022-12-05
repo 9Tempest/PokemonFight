@@ -45,7 +45,6 @@ class Player : public Visitor{
         SceneNode* get_node_by_name(const std::string& name){
             if (m_node_mapping.find(name) != m_node_mapping.end())
                 return m_node_mapping[name];
-            std::cout << "cannot find node " << name << std::endl;
             return nullptr;
         }
 

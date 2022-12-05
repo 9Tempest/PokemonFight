@@ -1,5 +1,6 @@
 #pragma once
-
+#include <stdio.h>
+#include <iostream>
 #ifdef NDEBUG
 
 // disable functions
@@ -10,8 +11,6 @@
 
 #else
 
-#include <stdio.h>
-#include <iostream>
 #define DLOG(fmt, ...)                                                     \
     do {                                                                       \
         fprintf(stderr, "DEBUG  [%s:%d] ",__FILE__,         \

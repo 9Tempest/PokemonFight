@@ -14,6 +14,7 @@ using namespace std;
 #include "PlayerAI.hpp"
 #include "GameObject.hpp"
 #include "random.hpp"
+#include "debug.hpp"
 
 
 using namespace glm;
@@ -72,7 +73,7 @@ void GameWindow::play_music(const std::string& music_name, bool is_loop){
 	}
 	m_sound = SoundEngine::play2D(music_name, is_loop, 0.1f);
 	assert(m_sound != nullptr);
-	std::cout << "playing " << music_name << std::endl;
+	PRINT(std::cout << "playing " << music_name << std::endl);
 	m_sound->setVolume(0.1f);
 	#else
 
@@ -802,6 +803,8 @@ void GameWindow::show_control_panel(bool & option){
 	ImGui::End();	
 }
 
+
+
 void GameWindow::show_option_panel(bool & option){
 	static bool firstRun(true);
 	if (firstRun) {
@@ -838,6 +841,24 @@ void GameWindow::show_option_panel(bool & option){
 }
 
 
+void GameWindow::toon_button(){
+
+	ImGui::SetNextWindowPos(ImVec2(m_windowWidth-150,50));
+
+	static bool showDebugWindow(false);
+	ImGuiWindowFlags windowFlags(ImGuiWindowFlags_NoTitleBar);
+	float opacity(0.0f);
+	ImGui::Begin("Menu", &showDebugWindow, ImVec2(200,200), opacity,
+				windowFlags);
+			if (ImGui::Button("Toon Shading", ImVec2(100,40))){
+				m_enableToonShading = !m_enableToonShading;
+			}	
+			if (ImGui::Button("Shadow Mapping", ImVec2(100,40))){
+				m_enableShadowMapping = !m_enableShadowMapping;
+			}
+	ImGui::End();
+}
+
 //----------------------------------------------------------------------------------------
 /*
  * Called once per frame, after appLogic(), but before the draw() method.
@@ -851,7 +872,6 @@ void GameWindow::guiLogic()
 	static bool firstRun(true);
 	if (firstRun) {
 		ImGui::SetNextWindowPos(ImVec2(m_windowWidth/2-40,m_windowHeight/2 + 50));
-		firstRun = false;
 	}
 
 	static bool showDebugWindow(false);
@@ -903,7 +923,11 @@ void GameWindow::guiLogic()
 			
 			ImGui::PopStyleColor();
 		ImGui::End();
+	}	else {
+		toon_button();
 	}
+
+	
 
 	
 	
@@ -927,6 +951,13 @@ void GameWindow::scene_processing(){
 	glViewport(0, 0, m_framebufferWidth, m_framebufferHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	enable_texture(m_shadowmap.depthMap, 1);
+	// enable texture mapping or not
+	m_shader.enable();
+	GLuint location = m_shader.getUniformLocation("enableShadow");
+	int enable_shadow = (int)m_enableShadowMapping;
+	glUniform1i(location, enable_shadow);
+	m_shader.disable();
+	CHECK_GL_ERRORS;
 	render_scene(m_shader);
 }
 
@@ -1051,6 +1082,11 @@ void GameWindow::renderSkyBox(){
 		//-- Set sampler:
 		location = m_shader_skybox.getUniformLocation("skybox");
 		glUniform1i(location, 0);
+		CHECK_GL_ERRORS;
+
+		// --Set Toon shading uniform
+		location = m_shader_skybox.getUniformLocation("enableToon");
+		glUniform1i(location, (int)m_enableToonShading);
 		CHECK_GL_ERRORS;
 
 		glDrawArrays(GL_TRIANGLES, 0, 36);
