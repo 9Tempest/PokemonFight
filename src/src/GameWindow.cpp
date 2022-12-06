@@ -357,8 +357,26 @@ void GameWindow::render_scene(ShaderProgram& prog){
 	HumanPlayer::get_instance()->get_root_node()->accept(*this);
 	AI::get_instance()->get_root_node()->accept(*this);
 	renderParticles(*ParticleAssets::fetch_system("dirt"));
+	// enable 2d to render lightning
+
+	// set 2d flag of shader
+	set_shader(m_shader);
+	m_shader.enable();
+	GLint location = m_shader.getUniformLocation("is2d");
+	glUniform1i(location, 1);
+	m_shader.disable();
+	CHECK_GL_ERRORS;
+
 	renderParticles(*ParticleAssets::fetch_system("lightning"));
 	renderParticles(*ParticleAssets::fetch_system("electornics"));
+
+	set_shader(m_shader);
+	m_shader.enable();
+	location = m_shader.getUniformLocation("is2d");
+	glUniform1i(location, 0);
+	m_shader.disable();
+	CHECK_GL_ERRORS;
+
 	renderParticles(*ParticleAssets::fetch_system("meteorite"));
 	m_scene->render(*this);
 

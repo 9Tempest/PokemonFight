@@ -24,6 +24,18 @@ rootnode:add_child(turso)
 turso:set_material(yellow2)
 turso:scale(1.3, 1.7, 1)
 
+-- construct back details
+back1 = gr.mesh('sphere', 'back1')
+back1:scale(2, 0.3, 0.1)
+back1:set_material(brown)
+back1:translate(0,-1,-2.2)
+turso:add_child(back1)
+
+back2 = gr.mesh('sphere', 'back1')
+back2:scale(2, 0.3, 0.1)
+back2:set_material(brown)
+back2:translate(0,1,-2.2)
+turso:add_child(back2)
 
 
 
